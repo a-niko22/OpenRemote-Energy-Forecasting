@@ -104,15 +104,13 @@
 \def\title#1{\gdef\@title{#1}%
 \providecommand\runningtitle{#1}%
 }
-\def\author#1{\gdef\@author{#1}
-\providecommand\runningauthor{#1}%
-}
-\makeatother
 \pagestyle{fancy}
-\fancyhead[LE]{\runningauthor}
-\fancyhead[LO]{\runningtitle}
-\fancyhead[R]{\thepage}
-\fancyfoot{}
+\fancyhead{} % clear field
+\fancyfoot{} % clear field
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[L]{\runningtitle}
+\fancyfoot[R]{\thepage}
+\renewcommand{\footrulewidth}{0.4pt}
 
 % ABSTRACT
 \renewenvironment{abstract}[1][4em]

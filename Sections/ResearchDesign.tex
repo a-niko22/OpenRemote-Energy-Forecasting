@@ -1,0 +1,30 @@
+\subsection{Research Design}
+
+This section will outline the methodologies to be experiemented with. These might encompass feature extraction, data processing, model architecture, or all. We will, for the purposes of this proposal, use a naming convention of Exp.$i.v$, where $i$ is the number of the experiment configuration, and
+$v$ is a letter, whose order is reset for each $i$.
+
+\subsubsection{Exp.1}
+
+From our literature, one of the most recurrent topics is the power of ensemble models, particularly ones using RNNs. To start out simple, we will introduce a CNN-LSTM variant architecture as a base and design multiple
+experiments that build upon it.
+
+Since we are using CNNs, which serve the purpose of capturing long-term sequential patters, it would be ideal to test an array of preprocessing methods, some of which enhance 3-dimentional features.
+For Exp.1, all variations will cycle through:
+\begin{enumerate}
+    \item Normalisation
+    \item Wavelet Transform\cite{4494757,Hiruta2025}
+    \item Transformer Encoding (PatchTST\cite{PatchTST})
+\end{enumerate}
+
+\paragraph{Exp.1.a}
+Variation \textbf{a} will use a simple CNN-BiLSTM, since the use of BiLSTM consistently outperforms normal LSTMs in time-series forecasts.
+\paragraph{Exp.1.b}
+Variation \textbf{b} will use a CNN-xLSTM.\
+\paragraph{Exp.1.c}
+Variation \textbf{c} will use a CNN-BiLSTM-Transformer. The discrepancy between results for each preprocessing method should be greatly scrutinised for this variation, as the use of a Transformer encoder and output model
+essentially places the CNN and BiLSTM as feature extractors.
+\paragraph{Exp.1.d}
+Variation \textbf{d} will use a CNN-Transformer. By removing the transformer, we aim to prove the null hypothesis that RNNs, particularly LSTMs, are greatly outperformed by Transformers for short-term dependencies,
+and that the features that they extract act as noise for a transformer.
+
+This set of variations offer a comprehensive use of the methods that the literature has provided, but they also take into account standard practises i.e. Normalisation and the use of CNNs for time-series data, also found in the literature\cite{math11030676,Xu2025,Manero2018}.

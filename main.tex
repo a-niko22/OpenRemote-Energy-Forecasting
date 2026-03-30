@@ -6,27 +6,32 @@
 \usepackage{algpseudocode}
 \usepackage{algorithm}
 \usepackage{multicol}
+\usepackage{import}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% \newcommand*\runningtitle{}     % Define how title is displayed in header
-% \newcommand*\runningauthor{}    % Define how author is displayed in header
-
 \title{Research Proposal}
-\author{Guilherme Oliveira}
+\author{Antoni Nikolov \and Catalin Popoiu \and Guilherme Oliveira}
 \date{}
 
 \begin{document}
 
 \maketitle
 
-
 \begin{multicols*}{2}
-    \begin{abstract}[2em]
-        % \lipsum[1][1-6]
-        This styled article class, inspired by the LIPIcs template and the layout of \href{https://github.com/BenjaminGor/Latex_Notes_Tutorial}{Benjamin Gor's tutorial}, was created due to my displeasure of the plain article templates used by many maths and computer science journals. May this class provide a pleasant reading experience for your paper, without distracting from its beautiful contents.
+    \begin{abstract}
+        Placeholder
     \end{abstract}
 
-    \input{Introduction}
+    \import{Sections/}{Introduction}
+
+    \import{Sections/}{LiteratureReview}
+
+    \section{Methodology}
+        \import{Sections/}{Data}
+
+        \import{Sections/}{ResearchDesign}
 \end{multicols*}
 
+\bibliographystyle{plain}
+\bibliography{citations}
 \end{document}
