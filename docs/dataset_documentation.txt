@@ -1,7 +1,7 @@
-DATASET: Electricity Price + Weather Features (2015–2025)
+DATASET: Electricity Price + Weather + Load + Generation Features (2015–2025)
 
 DESCRIPTION:
-This dataset combines hourly electricity market prices with meteorological variables and engineered temporal features for time-series modeling and forecasting.
+This dataset combines hourly electricity market prices with meteorological variables, system-level energy variables (load and generation), and  temporal features.
 
 --------------------------------------------------
 
@@ -18,6 +18,20 @@ price
 
 --------------------------------------------------
 
+SYSTEM (MARKET) FEATURES:
+
+total_load
+- Type: float (MW)
+- Description: Total electricity demand (forecasted system load).
+- Source: ENTSO-E.
+
+generation_forecast
+- Type: float (MW)
+- Description: Forecasted renewable generation (e.g., wind/solar).
+- Source: ENTSO-E.
+
+--------------------------------------------------
+
 WEATHER FEATURES:
 
 temperature_2m
@@ -26,16 +40,19 @@ temperature_2m
 - Source: Open-Meteo (ERA5-based model data).
 
 cloud_cover
-- Type: float (%)
-- Description: Fraction of sky covered by clouds (0–100%).
+- Type: float (0–1)
+- Description: Fraction of sky covered by clouds (normalized).
+- Source: Open-Meteo.
 
 wind_speed_10m
 - Type: float (m/s)
 - Description: Wind speed at 10 meters above ground level.
+- Source: Open-Meteo.
 
 shortwave_radiation
 - Type: float (W/m²)
 - Description: Incoming solar radiation at ground level.
+- Source: Open-Meteo.
 
 --------------------------------------------------
 
@@ -64,7 +81,7 @@ CYCLICAL ENCODING:
 hour_sin
 hour_cos
 - Type: float (-1 to 1)
-- Description: Sine and cosine transformation of hour variable:
+- Description: Cyclical transformation of hourly time:
     hour_sin = sin(2π * hour / 24)
     hour_cos = cos(2π * hour / 24)
 
@@ -74,20 +91,3 @@ DATA CHARACTERISTICS:
 
 - Frequency: Hourly
 - Time span: 2015–2025
-- Missing values: Should be minimal after merge (verify with .isnull())
-- Alignment: All features synchronized on timestamp
-
---------------------------------------------------
-
-MODEL CONTEXT:
-
-The dataset is designed for supervised learning tasks such as:
-- Time-series forecasting
-- Regression (price prediction)
-- Feature importance analysis
-
-Weather variables act as exogenous predictors influencing:
-- Renewable energy supply (wind/solar)
-- Electricity demand (temperature)
-
---------------------------------------------------
