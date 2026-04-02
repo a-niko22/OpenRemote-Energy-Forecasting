@@ -12,6 +12,8 @@ __pycache__/
 # .ipynb_checkpoints/
 # *.ipynb
 
+docs/
+
 # Training outputs (large, reproducible)
 saved_models/
 results/
