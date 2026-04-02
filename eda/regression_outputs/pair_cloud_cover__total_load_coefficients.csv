@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Pairwise OLS: price ~ cloud_cover + total_load,const,83.205623928468,0.0,80.56717539031982,85.84407246661618
+Pairwise OLS: price ~ cloud_cover + total_load,cloud_cover,0.1499042689606466,0.8507240594779047,-1.4112976949653104,1.7111062328866038
+Pairwise OLS: price ~ cloud_cover + total_load,total_load,-0.0005485876253635457,9.303120762236911e-08,-0.0007499315122461707,-0.00034724373848092063

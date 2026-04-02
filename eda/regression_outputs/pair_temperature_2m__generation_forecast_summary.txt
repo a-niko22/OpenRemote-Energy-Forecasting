@@ -1,0 +1,28 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                  price   R-squared:                       0.002
+Model:                            OLS   Adj. R-squared:                  0.002
+Method:                 Least Squares   F-statistic:                     75.28
+Date:                Wed, 01 Apr 2026   Prob (F-statistic):           2.15e-33
+Time:                        22:26:30   Log-Likelihood:            -5.5620e+05
+No. Observations:               96133   AIC:                         1.112e+06
+Df Residuals:                   96130   BIC:                         1.112e+06
+Df Model:                           2                                         
+Covariance Type:            nonrobust                                         
+=======================================================================================
+                          coef    std err          t      P>|t|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                  83.1596      0.587    141.625      0.000      82.009      84.310
+temperature_2m         -0.3854      0.039     -9.983      0.000      -0.461      -0.310
+generation_forecast    -0.0020      0.000     -8.099      0.000      -0.002      -0.001
+==============================================================================
+Omnibus:                    63168.227   Durbin-Watson:                   0.048
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):           860979.447
+Skew:                           3.033   Prob(JB):                         0.00
+Kurtosis:                      16.347   Cond. No.                     3.54e+03
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 3.54e+03. This might indicate that there are
+strong multicollinearity or other numerical problems.

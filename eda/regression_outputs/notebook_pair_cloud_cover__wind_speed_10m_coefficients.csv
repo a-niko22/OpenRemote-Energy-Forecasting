@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Notebook Pairwise OLS: price ~ cloud_cover + wind_speed_10m,const,103.439758360718,0.0,102.02904356744905,104.85047315398695
+Notebook Pairwise OLS: price ~ cloud_cover + wind_speed_10m,cloud_cover,10.305104461404337,3.277637484272584e-38,8.74301643602784,11.867192486780834
+Notebook Pairwise OLS: price ~ cloud_cover + wind_speed_10m,wind_speed_10m,-2.363901877576934,0.0,-2.438490020421819,-2.289313734732049

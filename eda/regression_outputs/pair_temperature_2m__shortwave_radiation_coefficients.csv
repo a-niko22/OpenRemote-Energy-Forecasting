@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Pairwise OLS: price ~ temperature_2m + shortwave_radiation,const,78.16654697374437,0.0,77.19133981297944,79.14175413450931
+Pairwise OLS: price ~ temperature_2m + shortwave_radiation,temperature_2m,0.4365387287891121,4.998569656793208e-22,0.3478802555480063,0.5251972020302179
+Pairwise OLS: price ~ temperature_2m + shortwave_radiation,shortwave_radiation,-0.04939446917406302,1.5154470190646043e-228,-0.05238587142723812,-0.046403066920887914

@@ -1,0 +1,11 @@
+figure,what_it_shows,why_it_matters
+price_full_series.png,Long-run target history with volatility shifts and extreme spikes.,Establishes that the target is non-stationary and heavy-tailed.
+price_frequency_transition.png,The switch from hourly to quarter-hour price resolution at the start of 2025.,Explains why the current dataset cannot yet support a fully aligned 15-minute exogenous panel.
+missingness_over_time.png,When exogenous missing blocks occur over time.,Supports explicit imputation or exclusion decisions instead of silent row dropping.
+correlation_heatmap_weather_production_price.png,"Initial structure among price, weather, system, and calendar variables.",Quickly highlights candidate features and redundant relationships.
+lagged_correlation_screen.png,How exogenous-price correlation changes across historical lags.,Guides later lag-feature engineering without overclaiming forecasting value.
+weather_r2_price_load_comparison.png,How strongly each weather variable explains price versus total load in pairwise OLS screening.,Directly answers whether weather is more linearly tied to demand than to price.
+price_two_variable_regression_r2_ranking.png,Which two-variable price regressions explain the most variance among all exogenous feature pairs.,Makes pair combinations like `cloud_cover + wind_speed_10m` comparable instead of anecdotal.
+multiple_model_b_diagnostics.png,Fit quality and residual behavior for the strongest exploratory linear model.,Shows both the usable signal and the remaining modeling gap.
+multiple_model_b_standardized_coefficients.png,Relative influence of the multi-feature predictors on a comparable scale.,Supports feature selection and interpretation discussions.
+anomaly_candidates_price.png,Flagged price spikes and unusual low-price periods.,Highlights where robust forecasting methods and careful evaluation will matter most.

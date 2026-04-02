@@ -1,0 +1,5 @@
+question,short_answer,evidence,why_it_matters
+Does price rise when load rises?,No in the simple same-time screen; fitted price falls slightly.,"coef=-0.000547, p=9.25e-08, R^2=0.0003","The p-value is small, but the explanatory power is tiny."
+Does price rise when temperature rises?,No in the simple same-time screen; fitted price falls.,"coef=-0.3491, p=9.4e-20, R^2=0.0009",The relation is statistically detectable but still very weak.
+Does price rise when wind speed rises?,No in the simple same-time screen; fitted price falls.,"coef=-2.2597, p=0, R^2=0.0368","This is the strongest single-variable price screen, but it still explains only a modest share of variance."
+What about cloud cover and wind speed together?,The combined model is better than cloud cover alone and slightly better than wind speed alone.,"adj_R^2=0.0385, p=0","cloud_cover: coef=10.3051, p=3.28e-38 | wind_speed_10m: coef=-2.3639, p=0"

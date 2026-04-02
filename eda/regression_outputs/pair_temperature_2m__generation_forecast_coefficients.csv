@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Pairwise OLS: price ~ temperature_2m + generation_forecast,const,83.15958308762426,0.0,82.00871257336847,84.31045360188004
+Pairwise OLS: price ~ temperature_2m + generation_forecast,temperature_2m,-0.3854463893477005,1.8659491785732838e-23,-0.4611255548401083,-0.30976722385529265
+Pairwise OLS: price ~ temperature_2m + generation_forecast,generation_forecast,-0.00197624926427032,5.617418042985567e-16,-0.002454524338854511,-0.0014979741896861286

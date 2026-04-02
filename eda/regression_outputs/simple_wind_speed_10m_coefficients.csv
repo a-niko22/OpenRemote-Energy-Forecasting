@@ -1,0 +1,3 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Simple OLS: price ~ wind_speed_10m,const,108.8462028786204,0.0,107.69695907695382,109.99544668028699
+Simple OLS: price ~ wind_speed_10m,wind_speed_10m,-2.259725152274508,0.0,-2.3326853211822067,-2.1867649833668095

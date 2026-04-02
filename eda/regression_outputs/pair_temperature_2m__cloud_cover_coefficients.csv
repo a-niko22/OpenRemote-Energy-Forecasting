@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Pairwise OLS: price ~ temperature_2m + cloud_cover,const,80.95035370154018,0.0,79.48529653040659,82.41541087267377
+Pairwise OLS: price ~ temperature_2m + cloud_cover,temperature_2m,-0.3511850246549774,6.865640488144111e-20,-0.42656143994457096,-0.27580860936538387
+Pairwise OLS: price ~ temperature_2m + cloud_cover,cloud_cover,-0.6523539211522911,0.4123240655910271,-2.21198323997451,0.9072753976699279

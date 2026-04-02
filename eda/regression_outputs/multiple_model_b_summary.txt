@@ -1,0 +1,37 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                  price   R-squared:                       0.150
+Model:                            OLS   Adj. R-squared:                  0.150
+Method:                 Least Squares   F-statistic:                     1544.
+Date:                Wed, 01 Apr 2026   Prob (F-statistic):               0.00
+Time:                        22:27:04   Log-Likelihood:            -5.4846e+05
+No. Observations:               96133   AIC:                         1.097e+06
+Df Residuals:                   96121   BIC:                         1.097e+06
+Df Model:                          11                                         
+Covariance Type:            nonrobust                                         
+=======================================================================================
+                          coef    std err          t      P>|t|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                 217.2514      1.964    110.613      0.000     213.402     221.101
+temperature_2m         -0.0738      0.047     -1.574      0.116      -0.166       0.018
+cloud_cover            -3.8818      0.785     -4.946      0.000      -5.420      -2.343
+wind_speed_10m         -5.5337      0.061    -90.569      0.000      -5.653      -5.414
+shortwave_radiation    -0.1244      0.002    -55.080      0.000      -0.129      -0.120
+total_load             -0.0057      0.000    -47.571      0.000      -0.006      -0.005
+generation_forecast     0.0235      0.000     60.823      0.000       0.023       0.024
+hour_sin              -13.8931      0.354    -39.242      0.000     -14.587     -13.199
+hour_cos              -37.9508      0.543    -69.830      0.000     -39.016     -36.886
+day_of_week            -0.5834      0.191     -3.049      0.002      -0.959      -0.208
+month                   1.3668      0.073     18.750      0.000       1.224       1.510
+is_weekend            -23.6217      0.869    -27.181      0.000     -25.325     -21.918
+==============================================================================
+Omnibus:                    63669.275   Durbin-Watson:                   0.060
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):           957639.664
+Skew:                           3.025   Prob(JB):                         0.00
+Kurtosis:                      17.230   Cond. No.                     1.06e+05
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 1.06e+05. This might indicate that there are
+strong multicollinearity or other numerical problems.

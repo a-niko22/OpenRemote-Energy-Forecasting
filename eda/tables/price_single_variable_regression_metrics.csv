@@ -1,0 +1,7 @@
+model_name,target_column,model_type,primary_feature,feature_count,feature_list,nobs,dropped_rows,r2,adj_r2,explained_variance,model_pvalue,aic,bic,summary_path
+Simple OLS: price ~ wind_speed_10m,price,simple,wind_speed_10m,1,wind_speed_10m,96337,0,0.0368,0.0368,0.0368,0.0,1111146.78,1111165.73,regression_outputs/simple_wind_speed_10m_summary.txt
+Simple OLS: price ~ shortwave_radiation,price,simple,shortwave_radiation,1,shortwave_radiation,96337,0,0.0106,0.0106,0.0106,2.6914597519202063e-226,1113731.77,1113750.72,regression_outputs/simple_shortwave_radiation_summary.txt
+Simple OLS: price ~ temperature_2m,price,simple,temperature_2m,1,temperature_2m,96337,0,0.0009,0.0008,0.0009,9.40440893167978e-20,1114680.46,1114699.41,regression_outputs/simple_temperature_2m_summary.txt
+Simple OLS: price ~ generation_forecast,price,simple,generation_forecast,1,generation_forecast,96133,204,0.0005,0.0005,0.0005,9.99943847895289e-13,1112508.11,1112527.05,regression_outputs/simple_generation_forecast_summary.txt
+Simple OLS: price ~ total_load,price,simple,total_load,1,total_load,96326,11,0.0003,0.0003,0.0003,9.254203583799459e-08,1114611.38,1114630.33,regression_outputs/simple_total_load_summary.txt
+Simple OLS: price ~ cloud_cover,price,simple,cloud_cover,1,cloud_cover,96337,0,0.0,-0.0,0.0,0.8243695288125994,1114763.15,1114782.1,regression_outputs/simple_cloud_cover_summary.txt

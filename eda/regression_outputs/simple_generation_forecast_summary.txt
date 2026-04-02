@@ -1,0 +1,27 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                  price   R-squared:                       0.001
+Model:                            OLS   Adj. R-squared:                  0.001
+Method:                 Least Squares   F-statistic:                     50.86
+Date:                Wed, 01 Apr 2026   Prob (F-statistic):           1.00e-12
+Time:                        22:26:16   Log-Likelihood:            -5.5625e+05
+No. Observations:               96133   AIC:                         1.113e+06
+Df Residuals:                   96131   BIC:                         1.113e+06
+Df Model:                           1                                         
+Covariance Type:            nonrobust                                         
+=======================================================================================
+                          coef    std err          t      P>|t|      [0.025      0.975]
+---------------------------------------------------------------------------------------
+const                  78.6165      0.371    211.780      0.000      77.889      79.344
+generation_forecast    -0.0017      0.000     -7.131      0.000      -0.002      -0.001
+==============================================================================
+Omnibus:                    62706.773   Durbin-Watson:                   0.048
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):           838034.558
+Skew:                           3.010   Prob(JB):                         0.00
+Kurtosis:                      16.152   Cond. No.                     2.23e+03
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 2.23e+03. This might indicate that there are
+strong multicollinearity or other numerical problems.

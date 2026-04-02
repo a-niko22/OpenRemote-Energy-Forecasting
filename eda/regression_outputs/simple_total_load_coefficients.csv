@@ -1,0 +1,3 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Simple OLS: price ~ total_load,const,83.28822420570219,0.0,80.79396844323892,85.78247996816546
+Simple OLS: price ~ total_load,total_load,-0.0005471376164802589,9.254203583756589e-08,-0.0007479133779128209,-0.0003463618550476969

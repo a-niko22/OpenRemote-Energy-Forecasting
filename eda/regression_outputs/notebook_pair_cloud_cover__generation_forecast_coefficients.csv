@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Notebook Pairwise OLS: price ~ cloud_cover + generation_forecast,const,78.16060967651056,0.0,76.94984689024658,79.37137246277454
+Notebook Pairwise OLS: price ~ cloud_cover + generation_forecast,cloud_cover,0.7450255284047749,0.3558955280532243,-0.836659811712968,2.3267108685225177
+Notebook Pairwise OLS: price ~ cloud_cover + generation_forecast,generation_forecast,-0.0017704636101498717,6.751517315032432e-13,-0.0022534024385853094,-0.001287524781714434

@@ -1,0 +1,10 @@
+dataset,rows,columns,date_start,date_end,frequency,duplicate_rows,duplicate_timestamps,missing_columns
+price_source,122617,2,2015-01-04 23:00:00,2025-12-31 23:45:00,"mixed (mode 0 days 01:00:00, min 0 days 00:15:00, 2 unique steps)",0,0,None
+load_source,96421,2,2015-01-01 00:00:00,2025-12-31 23:00:00,"mixed (mode 0 days 01:00:00, min 0 days 01:00:00, 2 unique steps)",0,0,None
+generation_source,96421,2,2015-01-01 00:00:00,2025-12-31 23:00:00,"mixed (mode 0 days 01:00:00, min 0 days 01:00:00, 2 unique steps)",0,0,generation_forecast
+weather_source,96432,5,2015-01-01 00:00:00,2025-12-31 23:00:00,regular (0 days 01:00:00),0,0,None
+final_dataset_full_raw,96337,14,2015-01-04 23:00:00,2025-12-31 23:00:00,regular (0 days 01:00:00),0,0,"total_load, generation_forecast"
+final_dataset_full_clean,96133,14,2015-01-04 23:00:00,2025-12-31 23:00:00,"mixed (mode 0 days 01:00:00, min 0 days 01:00:00, 4 unique steps)",0,0,None
+legacy_weather_variant,96432,5,2015-01-01 00:00:00,2025-12-31 23:00:00,regular (0 days 01:00:00),0,0,None
+legacy_combined_weather_price,96337,6,2015-01-04 23:00:00,2025-12-31 23:00:00,regular (0 days 01:00:00),0,0,None
+legacy_combined_with_temporal,96337,12,2015-01-04 23:00:00,2025-12-31 23:00:00,regular (0 days 01:00:00),0,0,None

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EDA Interactive Charts</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; line-height: 1.5; }
+    h1 { margin-bottom: 0.25rem; }
+    p { color: #333; }
+    li { margin-bottom: 1rem; }
+    a { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>EDA Interactive Charts</h1>
+  <p>Interactive Plotly outputs generated from <code>eda/eda.py</code>. Each page contains its own explanation of what the chart is, which dataset columns it uses, how to read it, and why it matters.</p>
+  <ul>
+    <li><a href="price_full_series_interactive.html">Hourly Price Series</a><br><small>Interactive view of the full hourly EPEX-style target series used for the aligned exogenous analysis.</small></li><li><a href="price_2025_15m_full_series_interactive.html">2025 Quarter-hour Price Series</a><br><small>Interactive view of the higher-resolution 2025 target segment.</small></li><li><a href="weather_timeseries_interactive.html">Weather Time Series</a><br><small>Interactive daily-mean weather series from the selected weather source.</small></li><li><a href="production_timeseries_interactive.html">Production and Load Time Series</a><br><small>Interactive daily-mean system series for demand and forecasted generation.</small></li><li><a href="correlation_heatmap_interactive.html">Correlation Heatmap</a><br><small>Interactive correlation matrix for price, exogenous variables, and calendar controls.</small></li><li><a href="lagged_correlations_interactive.html">Lagged Correlations</a><br><small>Interactive lag scan showing how each exogenous variable correlates with price across prior hours.</small></li><li><a href="missingness_over_time_interactive.html">Missingness Over Time</a><br><small>Interactive daily view of how many exogenous values are missing in the hourly aligned panel.</small></li><li><a href="price_vs_selected_exogenous_interactive.html">Price vs Selected Exogenous Variables</a><br><small>Interactive faceted scatter view for the strongest exploratory exogenous candidates.</small></li><li><a href="weather_r2_price_load_comparison_interactive.html">Weather R²: Price vs Total Load</a><br><small>Interactive grouped-bar comparison of pairwise weather OLS R² against price and total load.</small></li><li><a href="multiple_model_b_actual_vs_predicted_interactive.html">Regression Actual vs Predicted</a><br><small>Interactive diagnostic view for the strongest exploratory OLS model in the EDA.</small></li>
+  </ul>
+</body>
+</html>

@@ -1,0 +1,3 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Notebook Weather OLS: total_load ~ temperature_2m,const,13216.242995323095,0.0,13186.69323689683,13245.79275374936
+Notebook Weather OLS: total_load ~ temperature_2m,temperature_2m,-94.14562433121009,0.0,-96.43631584923199,-91.85493281318819

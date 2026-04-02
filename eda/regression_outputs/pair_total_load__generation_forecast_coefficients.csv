@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Pairwise OLS: price ~ total_load + generation_forecast,const,85.09830474149962,0.0,82.55276554008498,87.64384394291426
+Pairwise OLS: price ~ total_load + generation_forecast,total_load,-0.0005342279826908296,1.912409359904804e-07,-0.0007352789348294372,-0.00033317703055222203
+Pairwise OLS: price ~ total_load + generation_forecast,generation_forecast,-0.0017138924754855956,1.7294971521040016e-12,-0.0021899945354039896,-0.0012377904155672016

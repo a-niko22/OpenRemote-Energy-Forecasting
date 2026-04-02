@@ -1,0 +1,3 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Notebook Weather OLS: total_load ~ shortwave_radiation,const,12518.737300008128,0.0,12500.421329189627,12537.05327082663
+Notebook Weather OLS: total_load ~ shortwave_radiation,shortwave_radiation,-2.674105181814618,0.0,-2.7521484794887896,-2.5960618841404464
