@@ -9,8 +9,8 @@ __pycache__/
 *.pyo
 
 # Jupyter
-.ipynb_checkpoints/
-*.ipynb
+# .ipynb_checkpoints/
+# *.ipynb
 
 # Training outputs (large, reproducible)
 saved_models/
@@ -29,3 +29,6 @@ Thumbs.db
 # Env files
 .env
 *.env
+
+deployment/
+docker-compose.yml
