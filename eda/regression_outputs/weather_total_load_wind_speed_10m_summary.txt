@@ -3,8 +3,8 @@
 Dep. Variable:             total_load   R-squared:                       0.004
 Model:                            OLS   Adj. R-squared:                  0.004
 Method:                 Least Squares   F-statistic:                     358.3
-Date:                Wed, 01 Apr 2026   Prob (F-statistic):           9.28e-80
-Time:                        22:26:00   Log-Likelihood:            -8.8931e+05
+Date:                Tue, 07 Apr 2026   Prob (F-statistic):           9.28e-80
+Time:                        16:52:24   Log-Likelihood:            -8.8931e+05
 No. Observations:               96326   AIC:                         1.779e+06
 Df Residuals:                   96324   BIC:                         1.779e+06
 Df Model:                           1                                         

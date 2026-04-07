@@ -64,14 +64,14 @@ Multiple OLS A: price ~ weather + production,shortwave_radiation,-0.016006500251
 Multiple OLS A: price ~ weather + production,total_load,-7.835427624338097e-05,0.44688155200788454,-0.00028025800167780994,0.00012354944919104797
 Multiple OLS A: price ~ weather + production,generation_forecast,0.024039716195762503,0.0,0.02325774324508324,0.024821689146441766
 Multiple OLS B: price ~ weather + production + calendar,const,217.25140985592407,0.0,213.40186749504832,221.1009522167998
-Multiple OLS B: price ~ weather + production + calendar,temperature_2m,-0.07375036361374865,0.11554705240990694,-0.16560058281215945,0.01809985558466215
-Multiple OLS B: price ~ weather + production + calendar,cloud_cover,-3.8818298048819515,7.595472040783344e-07,-5.420170219138946,-2.343489390624957
+Multiple OLS B: price ~ weather + production + calendar,temperature_2m,-0.07375036361375173,0.11554705240989173,-0.16560058281216253,0.01809985558465907
+Multiple OLS B: price ~ weather + production + calendar,cloud_cover,-3.8818298048818716,7.595472040787187e-07,-5.420170219138865,-2.343489390624878
 Multiple OLS B: price ~ weather + production + calendar,wind_speed_10m,-5.533704378585309,0.0,-5.653458144891937,-5.413950612278681
-Multiple OLS B: price ~ weather + production + calendar,shortwave_radiation,-0.12435739467610588,0.0,-0.12878261283567213,-0.11993217651653962
-Multiple OLS B: price ~ weather + production + calendar,total_load,-0.005652250780705418,0.0,-0.005885130747282469,-0.005419370814128367
-Multiple OLS B: price ~ weather + production + calendar,generation_forecast,0.023455328019738302,0.0,0.02269949603301424,0.024211160006462364
-Multiple OLS B: price ~ weather + production + calendar,hour_sin,-13.893063975991959,0.0,-14.586975441582613,-13.199152510401305
-Multiple OLS B: price ~ weather + production + calendar,hour_cos,-37.95084820230154,0.0,-39.016048157721556,-36.88564824688153
-Multiple OLS B: price ~ weather + production + calendar,day_of_week,-0.5834226730901804,0.0022994153417206648,-0.9585084440676521,-0.20833690211270856
-Multiple OLS B: price ~ weather + production + calendar,month,1.3668464797831563,2.656279139594947e-78,1.2239687898466056,1.509724169719707
-Multiple OLS B: price ~ weather + production + calendar,is_weekend,-23.621710554986823,4.490320002815544e-162,-25.325043044036534,-21.918378065937112
+Multiple OLS B: price ~ weather + production + calendar,shortwave_radiation,-0.12435739467610504,0.0,-0.12878261283567133,-0.11993217651653877
+Multiple OLS B: price ~ weather + production + calendar,total_load,-0.005652250780705034,0.0,-0.005885130747282079,-0.005419370814127989
+Multiple OLS B: price ~ weather + production + calendar,generation_forecast,0.023455328019732512,0.0,0.022699496033008457,0.024211160006456567
+Multiple OLS B: price ~ weather + production + calendar,hour_sin,-13.893063975991998,0.0,-14.586975441582652,-13.199152510401344
+Multiple OLS B: price ~ weather + production + calendar,hour_cos,-37.95084820230151,0.0,-39.01604815772152,-36.885648246881495
+Multiple OLS B: price ~ weather + production + calendar,day_of_week,-0.5834226730901849,0.0022994153417204926,-0.9585084440676569,-0.20833690211271294
+Multiple OLS B: price ~ weather + production + calendar,month,1.3668464797831699,2.656279139586046e-78,1.223968789846619,1.5097241697197208
+Multiple OLS B: price ~ weather + production + calendar,is_weekend,-23.62171055498681,4.490320002817996e-162,-25.32504304403652,-21.918378065937098

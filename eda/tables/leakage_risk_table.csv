@@ -1,6 +1,6 @@
 feature,category,reason
-"hour, day_of_week, month, is_weekend, hour_sin, hour_cos",safe,Calendar features are known when the forecast is issued.
-lagged price features based only on past observations,safe,Past prices are available at forecast time.
+"calendar features (hour, day_of_week, month, is_weekend, cyclical hour)",safe,Calendar information is known at forecast time.
+lagged prices created only from historical values,safe,Past prices are available at forecast time.
 rolling features computed only from past windows,safe,Past-only windows do not leak future target information.
 "temperature_2m, cloud_cover, wind_speed_10m, shortwave_radiation",safe only if forecasted,Observed future weather is not available for a 48-hour-ahead forecast unless forecast data is used.
 generation_forecast,unclear,"The name suggests a forecast, but the dataset does not include forecast issuance timestamps or vintages."

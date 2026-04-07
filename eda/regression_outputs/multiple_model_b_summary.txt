@@ -3,8 +3,8 @@
 Dep. Variable:                  price   R-squared:                       0.150
 Model:                            OLS   Adj. R-squared:                  0.150
 Method:                 Least Squares   F-statistic:                     1544.
-Date:                Wed, 01 Apr 2026   Prob (F-statistic):               0.00
-Time:                        22:27:04   Log-Likelihood:            -5.4846e+05
+Date:                Tue, 07 Apr 2026   Prob (F-statistic):               0.00
+Time:                        16:53:20   Log-Likelihood:            -5.4846e+05
 No. Observations:               96133   AIC:                         1.097e+06
 Df Residuals:                   96121   BIC:                         1.097e+06
 Df Model:                          11                                         
