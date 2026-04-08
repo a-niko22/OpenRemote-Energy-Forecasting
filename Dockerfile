@@ -15,7 +15,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
     fastapi==0.111.0 \
     uvicorn[standard]==0.29.0 \
-    pydantic==2.7.1
+    pydantic==2.7.1 \
+    httpx==0.28.1
 
 # --- Runtime stage -----------------------------------------------------------
 FROM python:3.11-slim
@@ -28,7 +29,9 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Application source
 COPY forecasting/ ./forecasting/
-COPY saved_models/ ./saved_models/
+COPY saved_models/nbeatsx.pt ./saved_models/nbeatsx.pt
+COPY saved_models/nbeatsx_scalers.pkl ./saved_models/nbeatsx_scalers.pkl
+COPY static/ ./static/
 COPY app.py .
 
 # Persistent data mount point (docker-compose volume: service-ml-forecast-data)
