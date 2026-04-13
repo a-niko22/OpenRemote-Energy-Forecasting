@@ -1,0 +1,15 @@
+\section{Introduction}
+Energy Price Forecasting is a highly sought after technique that adds value to companies that benefit from load balancing and management. With the further decarbonisation of the energy grid, renewable energy introduces
+a strong temporal characteristic to the challenge; one that Neural Networks, particularly advancements in RNN\cite{Aksu2026,Xu2025,Shao2021,Fang2023,Manero2018}, Transformer\cite{Kong2025,Wang2026,Oliveira2023,9756020} and ensemble\cite{math11030676,CHEN2025126302,Hussan2026-dy} technology can leverage to improve the accuracy of predictions. As feature extraction mechanisms grow more robust\cite{CHEN2025126302,Aksu2026,Xu2025,4494757,Shao2021},
+and models involve complex sets of features like weather\cite{9788043, Wang2026}, location, and energy consumption\cite{4494757}, the demand for better, more accurace, and more farreaching models is growing withing the industry.
+
+One of the industry players with a keen interest in the technology is OpenRemote. The company provides a platform where entities with multiple energy-demanding components can manage their resources. One of the microservices
+that OpenRemote provides is an Energy Price Forecasting (EPF) model hosted by Prophet, that does not employ Neural Networks for its predictions\cite{Taylor2017}. Their current service is only able to offer 24h
+predictions ahead of time, which causes constraint for schedueled load balancing, and limits the amount of saving a client could make. OpenRemote argues that a 48h prediction window would be more benefitial. Furthemore, the Prophet model is more accurate around the peaks, but 
+relatively innacurate anywhere else. This is due to the limitations of the modeling techniques employed which, although easy to configure and faster than a Neural Network to train and generate forecastings, struggles 
+with the complexities of multi-feature temporal and spacial data that RNNs and Transformers capture with greater ease.
+
+This proposal will explore the literary zeitgeist around Energy-adjacent forecasting, and discuss their methodologies comparatively, while taking into account gaps in the research body. Then, it will discuss the
+properties that the dataset should seek to include, as to deliver a robust and complete set of features that can later be used to extract more features, or potentially scrapped. Afterwords, it will 
+delimite the research design by mainly outlining the modelling techniques that are going to be used, amongst other procedures.
+This proposed research should deliver a series of methods that address the challenges of EPF, particularly the request 48h forecasting window, and overall accuracy.

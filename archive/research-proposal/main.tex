@@ -1,0 +1,57 @@
+\documentclass[print]{styledarticle}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Load packages here! (or at least, before \ProcessPackages)
+\usepackage{extra}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{multicol}
+\usepackage{import}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{float}
+\captionsetup[figure]{hypcap=false}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Research Proposal}
+\author{Antoni Nikolov \and Catalin Popoiu \and Guilherme Oliveira}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{multicols*}{2}
+    \begin{abstract}
+        EPF has recently seen a resurgence in interest by companies whose operations are energy-dependent, and therefore benefit from timing their energy use in synchrony with the lowest energy prices. However, the
+        literature vastly underreports on the effects of weather data as a key factor for EPF.\\ The use of multi-feature models that include such data also lags behind the current advancements in Transformer and RNN model architectures,
+        as well as preprocessing opportunities. This research proposes a plan to test multiple architectures and preprocessing techniques in a modular way.
+        We hope to find in its midst, a model that out-performs the current solution used by OpenRemote.
+    \end{abstract}
+
+    \import{Sections/}{Introduction}
+
+    \import{Sections/}{LiteratureReview}
+
+    \section{Methodology}
+        \import{Sections/}{Data}
+
+        \import{Sections/}{ResearchDesign}
+
+    \import{Sections/}{PreliminaryData}
+
+    \import{Sections/}{StatementOfLimitations}
+
+    \import{Sections/}{HardwareSpecification}
+
+    \import{Sections/}{Conclusion}
+\end{multicols*}
+
+\bibliographystyle{plain}
+\bibliography{citations}
+
+\import{Sections/}{Appendix}
+
+\end{document}

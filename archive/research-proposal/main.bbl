@@ -1,0 +1,178 @@
+\begin{thebibliography}{10}
+
+\bibitem{Abedinia2017}
+Oveis Abedinia, Nima Amjady, and Noradin Ghadimi.
+\newblock Solar energy forecasting based on hybrid neural network and improved
+  metaheuristic algorithm.
+\newblock {\em Computational Intelligence}, 34(1), October 2017.
+
+\bibitem{Aksu2026}
+İnayet~\"{O}zge Aksu, Sina Ghaemi, and Amjad Anvari-Moghaddam.
+\newblock A two-stage deep learning approach for accurate day-ahead electricity
+  price forecasting.
+\newblock {\em Engineering Applications of Artificial Intelligence},
+  163:112721, January 2026.
+
+\bibitem{math11030676}
+Elham~M. Al-Ali, Yassine Hajji, Yahia Said, Manel Hleili, Amal~M. Alanzi,
+  Ali~H. Laatar, and Mohamed Atri.
+\newblock Solar energy production forecasting based on a hybrid
+  cnn-lstm-transformer model.
+\newblock {\em Mathematics}, 11(3), 2023.
+
+\bibitem{7903735}
+José~R. Andrade and Ricardo~J. Bessa.
+\newblock Improving renewable energy forecasting with a grid of numerical
+  weather predictions.
+\newblock {\em IEEE Transactions on Sustainable Energy}, 8(4):1571--1580, 2017.
+
+\bibitem{xLSTM2024}
+Maximilian Beck, Korbinian P\"{o}ppel, Markus Spanring, Andreas Auer,
+  Oleksandra Prudnikova, Michael Kopp, G\"{u}nter Klambauer, Johannes
+  Brandstetter, and Sepp Hochreiter.
+\newblock xlstm: Extended long short-term memory, 2024.
+
+\bibitem{Brecl2018-zt}
+Kristijan Brecl and Marko Topi{\v c}.
+\newblock Photovoltaics ({PV}) system energy forecast on the basis of the local
+  weather forecast: Problems, uncertainties and solutions.
+\newblock {\em Energies}, 11(5):1143, May 2018.
+
+\bibitem{CHEN2025126302}
+Junfeng Chen, Azhu Guan, Jingjing Du, and Altangerel Ayush.
+\newblock Multivariate time series prediction with multi-feature analysis.
+\newblock {\em Expert Systems with Applications}, 268:126302, 2025.
+
+\bibitem{Fang2023}
+Lei Fang and Bin He.
+\newblock A deep learning framework using multi-feature fusion recurrent neural
+  networks for energy consumption forecasting.
+\newblock {\em Applied Energy}, 348:121563, October 2023.
+
+\bibitem{Hiruta2025}
+Komei Hiruta and Junsuke Senoguchi.
+\newblock Wavelet-cnn for temporal data: Enhancing long-term stock price
+  prediction via multi-resolution wavelet decomposition and cnn-based feature
+  extraction.
+\newblock {\em International Journal of Information Management Data Insights},
+  5(2):100360, December 2025.
+
+\bibitem{Hussan2026-dy}
+Umair Hussan, Huaizhi Wang, Jianchun Peng, Hui Jiang, and Hamna Rasheed.
+\newblock Transformer-based renewable energy forecasting: A comprehensive
+  review.
+\newblock {\em Renew. Sustain. Energy Rev.}, 226(116356):116356, January 2026.
+
+\bibitem{xLSTMTimeSeries2025}
+Lei Kang, Xuanshuo Fu, Javier Vazquez-Corral, Ernest Valveny, and Dimosthenis
+  Karatzas.
+\newblock xlstm-ecg: Multi-label ecg classification via feature fusion with
+  xlstm, 2025.
+
+\bibitem{curseOfAttention}
+Yekun Ke, Yingyu Liang, Zhenmei Shi, Zhao Song, and Chiwun Yang.
+\newblock Curse of attention: A kernel-based perspective for why transformers
+  fail to generalize on time series forecasting and beyond, 2024.
+
+\bibitem{Kong2025}
+Xiangjie Kong, Zhenghao Chen, Weiyao Liu, Kaili Ning, Lechao Zhang, Syauqie
+  Muhammad~Marier, Yichen Liu, Yuhao Chen, and Feng Xia.
+\newblock Deep learning for time series forecasting: a survey.
+\newblock {\em International Journal of Machine Learning and Cybernetics},
+  16(7–8):5079–5112, February 2025.
+
+\bibitem{xLSTMMixer}
+Maurice Kraus, Felix Divo, Devendra~Singh Dhami, and Kristian Kersting.
+\newblock xlstm-mixer: Multivariate time series forecasting by mixing via
+  scalar memories, 2024.
+
+\bibitem{iTrans}
+Yong Liu, Tengge Hu, Haoran Zhang, Haixu Wu, Shiyu Wang, Lintao Ma, and
+  Mingsheng Long.
+\newblock itransformer: Inverted transformers are effective for time series
+  forecasting, 2023.
+
+\bibitem{Ma2025}
+Xiangkai Ma and Huaxiong Zhang.
+\newblock Time series forecasting method based on multi-scale feature fusion
+  and autoformer.
+\newblock {\em Applied Sciences}, 15(7):3768, March 2025.
+
+\bibitem{Manero2018}
+Jaume Manero, Javier Béjar, and Ulises Cortés.
+\newblock Wind energy forecasting with neural networks: A literature review.
+\newblock {\em Computación y Sistemas}, 22(4), December 2018.
+
+\bibitem{7754792}
+Y.~Nagaraja, T.~Devaraju, M.~Vijay Kumar, and Sreedhar Madichetty.
+\newblock A survey on wind energy, load and price forecasting: (forecasting
+  methods).
+\newblock In {\em 2016 International Conference on Electrical, Electronics, and
+  Optimization Techniques (ICEEOT)}, pages 783--788, 2016.
+
+\bibitem{PatchTST}
+Yuqi Nie, Nam~H. Nguyen, Phanwadee Sinthong, and Jayant Kalagnanam.
+\newblock A time series is worth 64 words: Long-term forecasting with
+  transformers, 2022.
+
+\bibitem{Oliveira2023}
+Hugo~S. Oliveira and Helder~P. Oliveira.
+\newblock Transformers for energy forecast.
+\newblock {\em Sensors}, 23(15):6840, August 2023.
+
+\bibitem{4494757}
+N.~M. Pindoriya, S.~N. Singh, and S.~K. Singh.
+\newblock An adaptive wavelet neural network-based energy price forecasting in
+  electricity markets.
+\newblock {\em IEEE Transactions on Power Systems}, 23(3):1423--1432, 2008.
+
+\bibitem{9788043}
+Raffaele Sgarlato and Florian Ziel.
+\newblock The role of weather predictions in electricity price forecasting
+  beyond the day-ahead horizon.
+\newblock {\em IEEE Transactions on Power Systems}, 38(3):2500--2511, 2023.
+
+\bibitem{Shao2021}
+Zhen Shao, Qingru Zheng, Chen Liu, Shuangyan Gao, Gang Wang, and Yan Chu.
+\newblock A feature extraction- and ranking-based framework for electricity
+  spot price forecasting using a hybrid deep neural network.
+\newblock {\em Electric Power Systems Research}, 200:107453, November 2021.
+
+\bibitem{su2019kernel}
+Yu-Chuan Su and Kristen Grauman.
+\newblock Kernel transformer networks for compact spherical convolution.
+\newblock In {\em Proceedings of the IEEE/CVF conference on computer vision and
+  pattern recognition}, pages 9442--9451, 2019.
+
+\bibitem{Taylor2017}
+Sean~J Taylor and Benjamin Letham.
+\newblock Forecasting at scale.
+\newblock September 2017.
+
+\bibitem{Wang2026}
+Baichun Wang, Baoxian Huang, Qinglun Zhang, Yan Shi, and Hong Men.
+\newblock Temporal feature mixed inverted transformer: An inverted transformer
+  for effective real-time electricity price forecasting.
+\newblock {\em Engineering Applications of Artificial Intelligence},
+  167:113778, March 2026.
+
+\bibitem{9756020}
+Chen Wang, Ying Wang, Zhetong Ding, Tao Zheng, Jiangyi Hu, and Kaifeng Zhang.
+\newblock A transformer-based method of multienergy load forecasting in
+  integrated energy system.
+\newblock {\em IEEE Transactions on Smart Grid}, 13(4):2703--2714, 2022.
+
+\bibitem{Xu2025}
+Yuzhen Xu, Xin Huang, Ziao Gao, Mohamed~A. Mohamed, and Tao Jin.
+\newblock A novel electricity price forecasting approach based on
+  multi-attention feature fusion model optimized by variational mode
+  decomposition.
+\newblock {\em Measurement}, 253:117596, September 2025.
+
+\bibitem{Yemets2025}
+Kyrylo Yemets, Ivan Izonin, and Ivanna Dronyuk.
+\newblock Time series forecasting model based on the adapted transformer neural
+  network and fft-based features extraction.
+\newblock {\em Sensors}, 25(3):652, January 2025.
+
+\end{thebibliography}

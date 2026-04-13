@@ -1,0 +1,97 @@
+% chktex-file 44
+
+\subsection{Research Design}
+
+This section will outline the methodologies to be experiemented with. These might encompass feature extraction, data processing, model architecture, or all. We will, for the purposes of this proposal, use a naming convention of Exp.$i.v$, where $i$ is the number of the experiment configuration, and
+$v$ is a letter, whose order is reset for each $i$.
+
+\begin{table*}[ht]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|>{\large\bfseries}c|>{\large}c|>{\large}c|>{\large}c|>{\large}c|}
+\hline
+ & \multicolumn{4}{|c|}{\Large \textbf{Exp.1}} \\
+\cline{2-5}
+ & \large a & \large b & \large c & \large d \\
+\hline
+Architecture & \large CNN-BiLSTM & \large CNN-xLSTM & \large CNN-BiLSTM-Transformer & \large CNN-Transformer \\
+\hline
+\makecell{\large Preprocessing\\methods} & \large Norm., WT, PatchTST & \large Norm., WT, PatchTST & \large Norm., WT, PatchTST & \large Norm., WT, PatchTST \\
+\hline
+\makecell{\large Additional\\notes} & \large  & \large  & \large  & \large To prove null-hypothesis i.e. RNNs punish accuracy \\
+\hline
+\end{tabular}
+}
+\caption{Exp.1: Model Architectures and Preprocessing}\label{tab:exp1}
+\end{table*}
+
+\subsubsection{Exp.1}
+
+From our literature, one of the most recurrent topics is the power of ensemble models, particularly ones using RNNs. To start out simple, we will introduce a CNN-LSTM variant architecture as a base and design multiple
+experiments that build upon it.
+
+Since we are using CNNs, which serve the purpose of capturing long-term sequential patters, it would be ideal to test an array of preprocessing methods, some of which enhance 3-dimentional features.
+For Exp.1, all variations will cycle through:
+\begin{enumerate}
+    \item Normalisation
+    \item Wavelet Transform\cite{4494757,Hiruta2025}
+    \item Transformer Encoding (PatchTST\cite{PatchTST})
+\end{enumerate}
+
+\paragraph{Exp.1.a}
+Variation \textbf{a} will use a simple CNN-BiLSTM, since the use of BiLSTM consistently outperforms normal LSTMs in time-series forecasts.
+\paragraph{Exp.1.b}
+Variation \textbf{b} will use a CNN-xLSTM.\
+\paragraph{Exp.1.c}
+Variation \textbf{c} will use a CNN-BiLSTM-Transformer. The discrepancy between results for each preprocessing method should be greatly scrutinised for this variation, as the use of a Transformer encoder and output model
+essentially places the CNN and BiLSTM as feature extractors.
+\paragraph{Exp.1.d}
+Variation \textbf{d} will use a CNN-Transformer. By removing the transformer, we aim to prove the null hypothesis that RNNs, particularly LSTMs, are greatly outperformed by Transformers for short-term dependencies,
+and that the features that they extract act as noise for a transformer.
+
+This set of variations offer a comprehensive use of the methods that the literature has provided, but they also take into account standard practises i.e. Normalisation and the use of CNNs for time-series data, also found in the literature\cite{math11030676,Xu2025,Manero2018}.
+
+
+\begin{table*}[ht]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|>{\large\bfseries}c|>{\large}c|>{\large}c|>{\large}c|>{\large}c|>{\large}c|}
+\hline
+ & \multicolumn{5}{|c|}{\Large \textbf{Exp.2}} \\
+\cline{2-6}
+ & \large a & \large b & \large c & \large d & \large e \\
+\hline
+Architecture & \large Decoder-Only Transformer & \large Decoder-Only + FFT & \large Encoder-Decoder Transformer & \large Kernel-based Transformer & \large iTransformer \\
+\hline
+\makecell{\large Preprocessing\\methods} & \large Standard & \large Fast Fourier Transform & \large Standard & \large Kernel-based & \large Standard \\
+\hline
+\makecell{\large Additional\\notes} & \large  & \large Same model as \textbf{a} & \large  & \large  & \large  \\
+\hline
+\end{tabular}
+}
+\caption{Exp.2: Model Architectures and Preprocessing}\label{tab:exp2}
+\end{table*}
+
+\subsubsection{Exp.2}
+
+Current trends in AI strongly favour Transformer architectures, or Attention layers. Exp.2 will focus on exploring this particular aspect in more detail. Exp.1 also features Transformers, but in this section, we want to 
+amplify their strenghts by means of expanding our number of features. Non-linearity is accutely endemic to all of our features\cite{Manero2018}. One hypothesis is that the Transformer architecture will be able to
+capture linear features where there is usually non-linearity.
+
+\paragraph{Exp.2.a}
+Variation \textbf{a} will use a classic multi-head Decoder-Only transformer\cite{Oliveira2023}. Decoder-Only transformers perform well in renewable scenario analysis, and use less memory\cite{Hussan2026-dy}. This 
+is relevant for our study because the nature of the data and analysis is similar by virtue of the non-linear and complex time-series tasks both try to address.
+
+\paragraph{Exp.2.b}
+Variation \textbf{b} will use the same model as Exp.2.a, but utilise Fast Fourier Transformers for feature extraction\cite{Yemets2025}.
+
+\paragraph{Exp.2.c}
+Variation \textbf{c} will use a multi-head Encoder-Decoder Transformer. Encoder-Decoder variants perform great with forecasting tasks\cite{Hussan2026-dy}.
+
+\paragraph{Exp.2.d}
+Variation \textbf{d} will use a Kernel-based Transformer. This architecture can better capture linearity when it exists\cite{su2019kernel} which has been pointed out as a reason for transformers failing to generalise on Time-Series tasks\cite{curseOfAttention}
+, all the while using less memory.
+
+\paragraph{Exp.2.e}
+Variation \textbf{e} will use an inverted Transformer, henceforth known as iTransformer; a method introduced by a landmark paper back in 2023\cite{iTrans}. The paper specifically demonstrates the effectiveness of the 
+proposed methodology for Time-Series Forecasting, and has been explicitely used for EPF\cite{Wang2026}.
