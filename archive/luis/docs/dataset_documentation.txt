@@ -1,0 +1,93 @@
+DATASET: Electricity Price + Weather + Load + Generation Features (2015–2025)
+
+DESCRIPTION:
+This dataset combines hourly electricity market prices with meteorological variables, system-level energy variables (load and generation), and  temporal features.
+
+--------------------------------------------------
+
+COLUMN DEFINITIONS:
+
+time
+- Type: datetime (UTC)
+- Description: Timestamp of observation at hourly resolution.
+
+price
+- Type: float (EUR/MWh)
+- Description: Day-ahead electricity market price.
+- Source: ENTSO-E transparency platform.
+
+--------------------------------------------------
+
+SYSTEM (MARKET) FEATURES:
+
+total_load
+- Type: float (MW)
+- Description: Total electricity demand (forecasted system load).
+- Source: ENTSO-E.
+
+generation_forecast
+- Type: float (MW)
+- Description: Forecasted renewable generation (e.g., wind/solar).
+- Source: ENTSO-E.
+
+--------------------------------------------------
+
+WEATHER FEATURES:
+
+temperature_2m
+- Type: float (°C)
+- Description: Air temperature measured at 2 meters above ground level.
+- Source: Open-Meteo (ERA5-based model data).
+
+cloud_cover
+- Type: float (0–1)
+- Description: Fraction of sky covered by clouds (normalized).
+- Source: Open-Meteo.
+
+wind_speed_10m
+- Type: float (m/s)
+- Description: Wind speed at 10 meters above ground level.
+- Source: Open-Meteo.
+
+shortwave_radiation
+- Type: float (W/m²)
+- Description: Incoming solar radiation at ground level.
+- Source: Open-Meteo.
+
+--------------------------------------------------
+
+TEMPORAL FEATURES:
+
+hour
+- Type: int (0–23)
+- Description: Hour of the day extracted from timestamp.
+
+day_of_week
+- Type: int (0–6)
+- Description: Day index (0 = Monday, 6 = Sunday).
+
+month
+- Type: int (1–12)
+- Description: Month extracted from timestamp.
+
+is_weekend
+- Type: binary (0/1)
+- Description: Indicator variable (1 = weekend, 0 = weekday).
+
+--------------------------------------------------
+
+CYCLICAL ENCODING:
+
+hour_sin
+hour_cos
+- Type: float (-1 to 1)
+- Description: Cyclical transformation of hourly time:
+    hour_sin = sin(2π * hour / 24)
+    hour_cos = cos(2π * hour / 24)
+
+--------------------------------------------------
+
+DATA CHARACTERISTICS:
+
+- Frequency: Hourly
+- Time span: 2015–2025
