@@ -1,0 +1,36 @@
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Jupyter
+# .ipynb_checkpoints/
+# *.ipynb
+
+docs/
+
+# Training outputs (large, reproducible)
+saved_models/
+results/
+results-*
+predictions/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Env files
+.env
+*.env
+
+deployment/
+docker-compose.yml
