@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Pairwise OLS: price ~ temperature_2m + wind_speed_10m,const,113.60726907366474,0.0,112.17993208360821,115.03460606372127
+Pairwise OLS: price ~ temperature_2m + wind_speed_10m,temperature_2m,-0.4147923398568347,3.500596106369244e-28,-0.48862389228295844,-0.340960787430711
+Pairwise OLS: price ~ temperature_2m + wind_speed_10m,wind_speed_10m,-2.271431395906505,0.0,-2.3443758371578687,-2.1984869546551415

@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Pairwise OLS: price ~ wind_speed_10m + generation_forecast,const,125.1199014003307,0.0,123.89822752286102,126.34157527780039
+Pairwise OLS: price ~ wind_speed_10m + generation_forecast,wind_speed_10m,-5.376388049798807,0.0,-5.492290789101569,-5.260485310496046
+Pairwise OLS: price ~ wind_speed_10m + generation_forecast,generation_forecast,0.025309865123899537,0.0,0.0245691948008755,0.026050535446923574

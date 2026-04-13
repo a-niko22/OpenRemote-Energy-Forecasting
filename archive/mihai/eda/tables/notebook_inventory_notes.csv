@@ -1,0 +1,7 @@
+item,detail
+Target column,price
+Primary timestamp column,time
+Primary exogenous variables,"temperature_2m, cloud_cover, wind_speed_10m, shortwave_radiation, total_load, generation_forecast"
+Selected weather source,old/weather_2015_2025_nl_avg_fixed.csv
+Excluded weather variant,old/weather_2015_2025.csv uses a different timestamp format and different scaling such as cloud_cover 34 instead of 0.236.
+Price frequency break,First quarter-hour timestamp appears at 2025-01-01 00:15:00

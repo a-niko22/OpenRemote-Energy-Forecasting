@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Notebook Pairwise OLS: price ~ shortwave_radiation + generation_forecast,const,85.73660223875662,0.0,84.90360004010807,86.56960443740516
+Notebook Pairwise OLS: price ~ shortwave_radiation + generation_forecast,shortwave_radiation,-0.044087068986280745,1.3176118989423347e-248,-0.04664545846495277,-0.04152867950760872
+Notebook Pairwise OLS: price ~ shortwave_radiation + generation_forecast,generation_forecast,-0.0030129608961486356,7.013760833969322e-35,-0.0034920775566551166,-0.0025338442356421546

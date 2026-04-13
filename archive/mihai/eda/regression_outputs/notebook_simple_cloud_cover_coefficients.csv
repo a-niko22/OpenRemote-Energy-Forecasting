@@ -1,0 +1,3 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Notebook Simple OLS: price ~ cloud_cover,const,76.74232517045928,0.0,75.58829660475463,77.89635373616393
+Notebook Simple OLS: price ~ cloud_cover,cloud_cover,-0.176292453988415,0.8243695287883887,-1.733236383110671,1.380651475133841

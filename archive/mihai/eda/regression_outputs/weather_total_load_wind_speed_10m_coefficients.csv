@@ -1,0 +1,3 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Pairwise OLS: total_load ~ wind_speed_10m,const,11852.064761643942,0.0,11815.302524354604,11888.82699893328
+Pairwise OLS: total_load ~ wind_speed_10m,wind_speed_10m,22.539400907521294,9.278592848410318e-80,20.205514570056035,24.873287244986553

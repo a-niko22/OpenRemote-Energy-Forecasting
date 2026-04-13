@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Pairwise OLS: price ~ cloud_cover + shortwave_radiation,const,84.77985942209757,0.0,83.53450693182917,86.02521191236598
+Pairwise OLS: price ~ cloud_cover + shortwave_radiation,cloud_cover,-4.0000149389389135,5.50289941028035e-07,-5.565434266182156,-2.434595611695671
+Pairwise OLS: price ~ cloud_cover + shortwave_radiation,shortwave_radiation,-0.04244787640105763,9.816983940050808e-232,-0.04500057387539811,-0.039895178926717144

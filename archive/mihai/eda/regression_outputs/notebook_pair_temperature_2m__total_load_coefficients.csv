@@ -1,0 +1,4 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Notebook Pairwise OLS: price ~ temperature_2m + total_load,const,91.52209313495784,0.0,88.6156689539654,94.42851731595029
+Notebook Pairwise OLS: price ~ temperature_2m + total_load,temperature_2m,-0.42801645921712156,3.620442164628659e-27,-0.5057027560779255,-0.35033016235631764
+Notebook Pairwise OLS: price ~ temperature_2m + total_load,total_load,-0.0008340747048825887,3.1553685426322574e-15,-0.0010413785982894795,-0.0006267708114756979

@@ -1,0 +1,8 @@
+column,missing_count,missing_pct,negative_count,zero_count,iqr_outlier_count,robust_anomaly_count,std,unique_values
+price,0,0.0,1608,259,8088,8348,78.7906,21148
+temperature_2m,0,0.0,3525,11,174,0,6.6122,2521
+cloud_cover,0,0.0,0,2510,0,0,0.3196,501
+wind_speed_10m,0,0.0,0,0,1877,271,6.6927,2461
+shortwave_radiation,0,0.0,0,44457,7332,41483,195.9721,4168
+total_load,11,0.011,0,0,1112,58,2477.9593,94871
+generation_forecast,204,0.212,0,0,4256,2600,1046.699,22263

@@ -1,0 +1,7 @@
+feature,missing_pct,std,lag1_autocorr,corr_with_price_t,best_lag_corr,best_abs_corr,best_lag_hours,iqr_outlier_pct
+total_load,0.011,2477.9593,0.9685,-0.0172,-0.2001,0.2001,39,1.154
+wind_speed_10m,0.0,6.6927,0.9818,-0.1919,-0.1919,0.1919,0,1.948
+shortwave_radiation,0.0,195.9721,0.9559,-0.1032,-0.1032,0.1032,0,7.611
+generation_forecast,0.212,1046.699,0.9925,-0.023,0.0821,0.0821,48,4.418
+temperature_2m,0.0,6.6122,0.994,-0.0293,-0.0293,0.0293,0,0.181
+cloud_cover,0.0,0.3196,0.942,-0.0007,-0.018,0.018,22,0.0

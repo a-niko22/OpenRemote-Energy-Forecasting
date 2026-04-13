@@ -1,0 +1,25 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:             total_load   R-squared:                       0.006
+Model:                            OLS   Adj. R-squared:                  0.006
+Method:                 Least Squares   F-statistic:                     544.9
+Date:                Tue, 07 Apr 2026   Prob (F-statistic):          3.45e-120
+Time:                        16:52:24   Log-Likelihood:            -8.8921e+05
+No. Observations:               96326   AIC:                         1.778e+06
+Df Residuals:                   96324   BIC:                         1.778e+06
+Df Model:                           1                                         
+Covariance Type:            nonrobust                                         
+===============================================================================
+                  coef    std err          t      P>|t|      [0.025      0.975]
+-------------------------------------------------------------------------------
+const        1.178e+04     18.466    638.183      0.000    1.17e+04    1.18e+04
+cloud_cover   581.5645     24.913     23.344      0.000     532.735     630.394
+==============================================================================
+Omnibus:                      351.364   Durbin-Watson:                   0.065
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              445.308
+Skew:                           0.062   Prob(JB):                     2.01e-97
+Kurtosis:                       3.309   Cond. No.                         4.63
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

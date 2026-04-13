@@ -1,0 +1,26 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                  price   R-squared:                       0.001
+Model:                            OLS   Adj. R-squared:                  0.001
+Method:                 Least Squares   F-statistic:                     41.72
+Date:                Tue, 07 Apr 2026   Prob (F-statistic):           7.75e-19
+Time:                        16:52:41   Log-Likelihood:            -5.5734e+05
+No. Observations:               96337   AIC:                         1.115e+06
+Df Residuals:                   96334   BIC:                         1.115e+06
+Df Model:                           2                                         
+Covariance Type:            nonrobust                                         
+==================================================================================
+                     coef    std err          t      P>|t|      [0.025      0.975]
+----------------------------------------------------------------------------------
+const             80.9504      0.747    108.297      0.000      79.485      82.415
+temperature_2m    -0.3512      0.038     -9.132      0.000      -0.427      -0.276
+cloud_cover       -0.6524      0.796     -0.820      0.412      -2.212       0.907
+==============================================================================
+Omnibus:                    63502.415   Durbin-Watson:                   0.048
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):           874082.330
+Skew:                           3.043   Prob(JB):                         0.00
+Kurtosis:                      16.443   Cond. No.                         52.1
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

@@ -1,0 +1,28 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                  price   R-squared:                       0.037
+Model:                            OLS   Adj. R-squared:                  0.037
+Method:                 Least Squares   F-statistic:                     1843.
+Date:                Thu, 02 Apr 2026   Prob (F-statistic):               0.00
+Time:                        13:33:28   Log-Likelihood:            -5.5551e+05
+No. Observations:               96326   AIC:                         1.111e+06
+Df Residuals:                   96323   BIC:                         1.111e+06
+Df Model:                           2                                         
+Covariance Type:            nonrobust                                         
+==================================================================================
+                     coef    std err          t      P>|t|      [0.025      0.975]
+----------------------------------------------------------------------------------
+const            110.9347      1.330     83.401      0.000     108.328     113.542
+wind_speed_10m    -2.2555      0.037    -60.473      0.000      -2.329      -2.182
+total_load        -0.0002      0.000     -1.750      0.080      -0.000    2.11e-05
+==============================================================================
+Omnibus:                    62263.452   Durbin-Watson:                   0.049
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):           829253.045
+Skew:                           2.972   Prob(JB):                         0.00
+Kurtosis:                      16.087   Cond. No.                     6.63e+04
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 6.63e+04. This might indicate that there are
+strong multicollinearity or other numerical problems.

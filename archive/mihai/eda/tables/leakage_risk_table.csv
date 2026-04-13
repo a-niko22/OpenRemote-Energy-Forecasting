@@ -1,0 +1,9 @@
+feature,category,reason
+"calendar features (hour, day_of_week, month, is_weekend, cyclical hour)",safe,Calendar information is known at forecast time.
+lagged prices created only from historical values,safe,Past prices are available at forecast time.
+rolling features computed only from past windows,safe,Past-only windows do not leak future target information.
+"temperature_2m, cloud_cover, wind_speed_10m, shortwave_radiation",safe only if forecasted,Observed future weather is not available for a 48-hour-ahead forecast unless forecast data is used.
+generation_forecast,unclear,"The name suggests a forecast, but the dataset does not include forecast issuance timestamps or vintages."
+total_load,safe only if forecasted,Observed future load would leak; forecasted load could be safe if only the ex-ante forecast is used.
+future observed production or weather values aligned directly with the target horizon,unsafe / leaky,These values would not be known when issuing the forecast.
+centered rolling windows or features derived from future prices,unsafe / leaky,They use future observations from the prediction period.

@@ -1,0 +1,3 @@
+model,variable,coefficient,p_value,ci_low,ci_high
+Pairwise OLS: price ~ shortwave_radiation,const,81.98100074953767,0.0,81.38836695988546,82.57363453918988
+Pairwise OLS: price ~ shortwave_radiation,shortwave_radiation,-0.04148973562173993,2.691459751903688e-226,-0.04401505827457863,-0.03896441296890123

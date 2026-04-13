@@ -1,0 +1,8 @@
+column,rule,suspicious_count
+temperature_2m,"[-40.0, 50.0]",0
+cloud_cover,"[0.0, 1.0]",0
+wind_speed_10m,"[0.0, 60.0]",0
+shortwave_radiation,"[0.0, 1400.0]",0
+total_load,"[0.0, None]",0
+generation_forecast,"[0.0, None]",0
+price,"[-500.0, 1000.0]",0
