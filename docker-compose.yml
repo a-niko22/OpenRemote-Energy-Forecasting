@@ -80,7 +80,7 @@ services:
       - service-ml-forecast-data:/app/deployment/data
 
   energy-price-forecast:
-    image: energy-price-forecast:latest
+    image: nazim112/energy-price-forecast:latest
     restart: always
     environment:
       ML_LOG_LEVEL: INFO
