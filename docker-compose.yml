@@ -29,7 +29,7 @@ services:
                                              # intended to be IP of the interface of the private subnet of the EC2 VM
     volumes:
       - proxy-data:/deployment
-      - ../Energy-Forecasting-Dataset/deployment:/data
+      - ./deployment:/data
     environment:
       LE_EMAIL: ${OR_EMAIL_ADMIN:-}
       DOMAINNAME: ${OR_HOSTNAME:-localhost}
@@ -80,7 +80,7 @@ services:
       - service-ml-forecast-data:/app/deployment/data
 
   energy-price-forecast:
-    image: energy-price-forecast:latest
+    image: nazim112/energy-price-forecast:latest
     restart: always
     environment:
       ML_LOG_LEVEL: INFO
