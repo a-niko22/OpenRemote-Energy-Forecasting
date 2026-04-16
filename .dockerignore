@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Data & results (large, not needed at runtime)
+data/
+results/
+results-gpu-2015-2019/
+predictions/
+
+# Dev / repo
+.git/
+.gitignore
+*.md
+commands.txt
+scripts/
+
+# Secrets / env
+.env
