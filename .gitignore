@@ -31,3 +31,5 @@ Thumbs.db
 
 # Local logs
 *.log
+
+.claude/

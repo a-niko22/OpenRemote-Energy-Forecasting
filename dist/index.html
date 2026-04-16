@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Energy Price Forecast</title>
+  <script>
+    /* Injected by app.py at request time — do not rename this placeholder */
+    const RC = __RUNTIME_CONFIG__;
+    const BASE = RC.ML_SERVICE_URL;   /* e.g. /services/energy-price-forecast */
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      background: #f4f6f8;
+      color: #2d3748;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #1a56db;
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header svg { flex-shrink: 0; }
+    header h1 { font-size: 16px; font-weight: 600; }
+    header .badge {
+      margin-left: auto;
+      font-size: 11px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      padding: 3px 8px;
+    }
+
+    /* ── Layout ── */
+    main { padding: 20px 24px; max-width: 960px; }
+
+    /* ── Model info bar ── */
+    #model-bar {
+      display: flex;
+      gap: 16px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .stat { display: flex; flex-direction: column; gap: 2px; }
+    .stat-label { font-size: 11px; color: #718096; text-transform: uppercase; letter-spacing: .04em; }
+    .stat-value { font-size: 14px; font-weight: 600; color: #2d3748; }
+    #model-bar .divider { border-left: 1px solid #e2e8f0; margin: 0 4px; }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-header h2 { font-size: 14px; font-weight: 600; }
+
+    /* ── Button ── */
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 14px;
+      transition: background .15s;
+    }
+    .btn-primary { background: #1a56db; color: #fff; }
+    .btn-primary:hover { background: #1648c0; }
+    .btn-danger  { background: #fff; color: #e53e3e; border: 1px solid #fed7d7; }
+    .btn-danger:hover  { background: #fff5f5; }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── Table ── */
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: #f7fafc;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    tbody tr { border-bottom: 1px solid #f0f4f8; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 10px 14px; vertical-align: middle; }
+    .empty-row td {
+      text-align: center;
+      color: #a0aec0;
+      padding: 32px;
+      font-size: 13px;
+    }
+
+    /* ── Status pill ── */
+    .pill {
+      display: inline-block;
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .pill-green { background: #c6f6d5; color: #276749; }
+    .pill-gray  { background: #e2e8f0; color: #4a5568; }
+
+    /* ── Modal overlay ── */
+    #modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #modal-overlay.open { display: flex; }
+
+    #modal {
+      background: #fff;
+      border-radius: 10px;
+      width: 480px;
+      max-width: calc(100vw - 40px);
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    #modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 18px; }
+
+    /* ── Form ── */
+    .form-row { margin-bottom: 14px; }
+    label { display: block; font-size: 12px; font-weight: 500; color: #4a5568; margin-bottom: 4px; }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 13px;
+      outline: none;
+      transition: border .15s;
+    }
+    input:focus { border-color: #1a56db; }
+    .form-hint { font-size: 11px; color: #a0aec0; margin-top: 3px; }
+    .form-check { display: flex; align-items: center; gap: 8px; }
+    .form-check input { width: auto; }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    .btn-cancel { background: #edf2f7; color: #4a5568; }
+    .btn-cancel:hover { background: #e2e8f0; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 20px; right: 20px;
+      background: #2d3748;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity .25s;
+      z-index: 200;
+    }
+    #toast.show { opacity: 1; }
+    #toast.error { background: #c53030; }
+  </style>
+</head>
+<body>
+
+<header>
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </svg>
+  <h1>Energy Price Forecast</h1>
+  <span class="badge" id="realm-badge">master</span>
+</header>
+
+<main>
+  <!-- Model info -->
+  <div id="model-bar">
+    <div class="stat">
+      <span class="stat-label">Status</span>
+      <span class="stat-value" id="s-status">—</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat">
+      <span class="stat-label">Model</span>
+      <span class="stat-value" id="s-model">—</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat">
+      <span class="stat-label">Horizon</span>
+      <span class="stat-value" id="s-horizon">—</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat">
+      <span class="stat-label">Sequence length</span>
+      <span class="stat-value" id="s-seqlen">—</span>
+    </div>
+  </div>
+
+  <!-- Configs table -->
+  <div class="section-header">
+    <h2>Forecast Configurations</h2>
+    <button class="btn-primary" onclick="openModal()">+ New Configuration</button>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Target Attribute</th>
+          <th>Asset ID</th>
+          <th>Interval (h)</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="config-table-body">
+        <tr class="empty-row"><td colspan="6">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Create modal -->
+<div id="modal-overlay">
+  <div id="modal">
+    <h3>New Forecast Configuration</h3>
+    <form id="create-form" onsubmit="submitConfig(event)">
+      <div class="form-row">
+        <label>Name *</label>
+        <input type="text" name="name" required placeholder="e.g. NL Day-Ahead Price" />
+      </div>
+      <div class="form-row">
+        <label>Target Asset ID</label>
+        <input type="text" name="target_asset_id" placeholder="OpenRemote asset UUID" />
+        <p class="form-hint">Leave blank to skip writing back to an asset.</p>
+      </div>
+      <div class="form-row">
+        <label>Target Attribute</label>
+        <input type="text" name="target_attribute" value="predictedEnergyPrice" />
+      </div>
+      <div class="form-row">
+        <label>Schedule Interval (hours)</label>
+        <input type="number" name="schedule_interval_hours" value="1" min="1" max="168" />
+      </div>
+      <div class="form-row">
+        <div class="form-check">
+          <input type="checkbox" name="enabled" id="chk-enabled" checked />
+          <label for="chk-enabled" style="margin:0">Enabled</label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary" id="save-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  /* ── Runtime helpers ── */
+  const REALM = RC.realm || "master";
+  document.getElementById("realm-badge").textContent = REALM;
+
+  function api(path, opts) {
+    return fetch(BASE + path, opts).then(r => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r;
+    });
+  }
+
+  /* ── Toast ── */
+  let _toastTimer;
+  function toast(msg, isError) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.className = "show" + (isError ? " error" : "");
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { el.className = ""; }, 3000);
+  }
+
+  /* ── Load model health ── */
+  async function loadHealth() {
+    try {
+      const data = await api("/health").then(r => r.json());
+      document.getElementById("s-status").textContent  = "Online";
+      document.getElementById("s-status").style.color  = "#276749";
+      document.getElementById("s-model").textContent   = data.model   || "—";
+      document.getElementById("s-horizon").textContent = data.horizon  != null ? data.horizon + " steps" : "—";
+      document.getElementById("s-seqlen").textContent  = data.seq_len  != null ? data.seq_len + " steps"  : "—";
+    } catch {
+      document.getElementById("s-status").textContent = "Unreachable";
+      document.getElementById("s-status").style.color = "#c53030";
+    }
+  }
+
+  /* ── Load configs ── */
+  async function loadConfigs() {
+    const tbody = document.getElementById("config-table-body");
+    try {
+      const configs = await api("/configs").then(r => r.json());
+      if (!configs.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No configurations yet — create one above.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = configs.map(c => `
+        <tr>
+          <td><strong>${esc(c.name)}</strong></td>
+          <td>${esc(c.target_attribute)}</td>
+          <td style="font-family:monospace;font-size:12px;color:#718096">${esc(c.target_asset_id) || "—"}</td>
+          <td>${c.schedule_interval_hours}h</td>
+          <td><span class="pill ${c.enabled ? "pill-green" : "pill-gray"}">${c.enabled ? "Enabled" : "Disabled"}</span></td>
+          <td style="text-align:right">
+            <button class="btn-danger btn-sm" onclick="deleteConfig('${esc(c.id)}', this)">Delete</button>
+          </td>
+        </tr>`).join("");
+    } catch {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Failed to load configurations.</td></tr>';
+      toast("Could not load configurations", true);
+    }
+  }
+
+  /* ── Delete config ── */
+  async function deleteConfig(id, btn) {
+    if (!confirm("Delete this configuration?")) return;
+    btn.disabled = true;
+    try {
+      await api("/configs/" + id, { method: "DELETE" });
+      toast("Configuration deleted");
+      loadConfigs();
+    } catch {
+      toast("Delete failed", true);
+      btn.disabled = false;
+    }
+  }
+
+  /* ── Modal ── */
+  function openModal() {
+    document.getElementById("modal-overlay").classList.add("open");
+    document.getElementById("create-form").reset();
+    document.getElementById("chk-enabled").checked = true;
+  }
+  function closeModal() {
+    document.getElementById("modal-overlay").classList.remove("open");
+  }
+  document.getElementById("modal-overlay").addEventListener("click", e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  /* ── Submit new config ── */
+  async function submitConfig(e) {
+    e.preventDefault();
+    const btn = document.getElementById("save-btn");
+    btn.disabled = true;
+    btn.textContent = "Saving…";
+
+    const fd = new FormData(e.target);
+    const payload = {
+      name:                   fd.get("name"),
+      realm:                  REALM,
+      target_asset_id:        fd.get("target_asset_id") || "",
+      target_attribute:       fd.get("target_attribute") || "predictedEnergyPrice",
+      schedule_interval_hours: parseInt(fd.get("schedule_interval_hours"), 10) || 1,
+      enabled:                document.getElementById("chk-enabled").checked,
+    };
+
+    try {
+      await api("/configs", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(payload),
+      });
+      toast("Configuration saved");
+      closeModal();
+      loadConfigs();
+    } catch {
+      toast("Failed to save configuration", true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Save";
+    }
+  }
+
+  /* ── Escape HTML ── */
+  function esc(s) {
+    return String(s ?? "")
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+
+  /* ── Init ── */
+  loadHealth();
+  loadConfigs();
+</script>
+</body>
+</html>

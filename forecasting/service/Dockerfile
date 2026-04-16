@@ -31,11 +31,11 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY forecasting/ ./forecasting/
 COPY saved_models/nbeatsx.pt ./saved_models/nbeatsx.pt
 COPY saved_models/nbeatsx_scalers.pkl ./saved_models/nbeatsx_scalers.pkl
-COPY static/ ./static/
+COPY dist/ ./dist/
 COPY app.py .
 
 # Persistent data mount point (docker-compose volume: service-ml-forecast-data)
-RUN mkdir -p /app/deployment/data
+RUN mkdir -p /app/deployment/data/configs
 
 EXPOSE 8000
 

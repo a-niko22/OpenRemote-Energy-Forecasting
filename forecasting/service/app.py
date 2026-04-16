@@ -22,18 +22,20 @@ import json
 import logging
 import os
 import ssl
+import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import httpx
 import numpy as np
 import torch
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from forecasting.models import build_model
-from forecasting.pipeline.data_utils import load_scalers
+from forecasting.data_utils import load_scalers
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -93,13 +95,15 @@ async def _get_access_token(client: httpx.AsyncClient) -> str | None:
 
 async def _register_service(client: httpx.AsyncClient, token: str) -> str | None:
     """Register this service with OpenRemote Manager. Returns instanceId."""
-    or_url = os.getenv("ML_OR_URL", "http://localhost:8080")
+    or_url = os.getenv("ML_OR_URL", "http://manager:8080")
     service_url = os.getenv("ML_OR_SERVICE_URL", "https://localhost")
+    realm = os.getenv("ML_OR_REALM", "master")
 
     payload = {
         "serviceId": SERVICE_ID,
         "label": SERVICE_LABEL,
         "icon": SERVICE_ICON,
+        "realm": realm,
         "homepageUrl": f"{service_url}{API_ROOT_PATH}/ui/{{realm}}",
         "status": "AVAILABLE",
     }
@@ -227,17 +231,104 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
 )
 
 
 # ---------------------------------------------------------------------------
+# Forecast config persistence
+# ---------------------------------------------------------------------------
+_CONFIGS_DIR = Path(os.getenv("ML_DATA_DIR", "deployment/data")) / "configs"
+
+
+class ForecastConfig(BaseModel):
+    id: str = ""
+    name: str
+    realm: str = "master"
+    target_asset_id: str = ""
+    target_attribute: str = "predictedEnergyPrice"
+    schedule_interval_hours: int = 1
+    enabled: bool = True
+
+
+def _list_configs() -> list[ForecastConfig]:
+    if not _CONFIGS_DIR.exists():
+        return []
+    configs = []
+    for path in sorted(_CONFIGS_DIR.glob("*.json")):
+        try:
+            configs.append(ForecastConfig(**json.loads(path.read_text())))
+        except Exception:
+            logger.exception("Failed to read config %s", path)
+    return configs
+
+
+def _write_config(cfg: ForecastConfig) -> None:
+    _CONFIGS_DIR.mkdir(parents=True, exist_ok=True)
+    (_CONFIGS_DIR / f"{cfg.id}.json").write_text(json.dumps(cfg.model_dump(), indent=2))
+
+
+@app.get("/configs", response_model=list[ForecastConfig])
+def get_configs():
+    return _list_configs()
+
+
+@app.post("/configs", response_model=ForecastConfig, status_code=201)
+def create_config(cfg: ForecastConfig):
+    cfg.id = str(uuid.uuid4())
+    _write_config(cfg)
+    return cfg
+
+
+@app.delete("/configs/{config_id}", status_code=204)
+def delete_config(config_id: str):
+    path = _CONFIGS_DIR / f"{config_id}.json"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Config not found")
+    path.unlink()
+
+
+# ---------------------------------------------------------------------------
 # UI (embedded in OpenRemote Manager via iframe)
 # ---------------------------------------------------------------------------
-@app.get("/ui/{realm}")
+_DIST_DIR = Path("dist")
+
+
+def _render_ui(realm: str) -> HTMLResponse:
+    index_path = _DIST_DIR / "index.html"
+    if not index_path.exists():
+        raise HTTPException(status_code=404, detail="UI not found")
+
+    runtime_config = {
+        "ML_SERVICE_URL": API_ROOT_PATH,
+        "ML_OR_URL": os.getenv("ML_OR_EXTERNAL_URL",
+                    os.getenv("ML_OR_URL", "https://localhost")),
+        "ML_OR_KEYCLOAK_URL": os.getenv("ML_OR_KEYCLOAK_EXTERNAL_URL",
+                            os.getenv("ML_OR_KEYCLOAK_URL", "https://localhost/auth")),
+        "realm": realm,
+    }
+    config_json = json.dumps(runtime_config).replace("<", "\\u003c")
+    html = index_path.read_text(encoding="utf-8")
+    html = html.replace("__RUNTIME_CONFIG__", config_json)
+    return HTMLResponse(
+        content=html,
+        headers={
+            "Content-Security-Policy": "frame-ancestors 'self' https://localhost"
+        }
+    )
+
+
+@app.get("/ui", include_in_schema=False)
+@app.get("/ui/", include_in_schema=False)
+def ui_root():
+    realm = os.getenv("ML_OR_REALM", "master")
+    return _render_ui(realm)
+
+
+@app.get("/ui/{realm}", include_in_schema=False)
 def ui_page(realm: str):
-    return FileResponse("static/index.html", media_type="text/html")
+    return _render_ui(realm)
 
 
 # ---------------------------------------------------------------------------
