@@ -1,0 +1,23 @@
+{
+  "base_config": "base.yaml",
+  "experiment_name": "exp2b_itransformer",
+  "data": {
+    "path": "hf://datasets/CitrusBoy/EnergyPriceForecasting/final_dataset_full_clean_with_gas_no_processing.csv",
+    "timestamp_col": "time",
+    "target_col": "price",
+    "feature_cols": null,
+    "resample_freq": null
+  },
+  "model": {
+    "name": "itransformer",
+    "transformer": {
+      "d_model": 128,
+      "nhead": 4,
+      "num_layers": 3,
+      "dim_feedforward": 256,
+      "dropout": 0.1,
+      "pool": "mean",
+      "head_hidden_size": 128
+    }
+  }
+}

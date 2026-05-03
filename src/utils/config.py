@@ -92,12 +92,24 @@ class XLSTMConfig:
 
 
 @dataclass
+class TransformerConfig:
+    d_model: int
+    nhead: int
+    num_layers: int
+    dim_feedforward: int
+    dropout: float
+    pool: str
+    head_hidden_size: int
+
+
+@dataclass
 class ModelConfig:
     name: str
-    patch_embed_dim: int
-    cnn: CNNConfig
+    patch_embed_dim: int = 64
+    cnn: CNNConfig | None = None
     bilstm: BiLSTMConfig | None = None
     xlstm: XLSTMConfig | None = None
+    transformer: TransformerConfig | None = None
 
 
 @dataclass
@@ -200,14 +212,17 @@ def _build_preprocessing_config(data: dict[str, Any]) -> PreprocessingConfig:
 
 
 def _build_model_config(data: dict[str, Any]) -> ModelConfig:
+    cnn_data = data.get("cnn")
     bilstm_data = data.get("bilstm")
     xlstm_data = data.get("xlstm")
+    transformer_data = data.get("transformer")
     return ModelConfig(
         name=data["name"],
-        patch_embed_dim=int(data["patch_embed_dim"]),
-        cnn=CNNConfig(**data["cnn"]),
+        patch_embed_dim=int(data.get("patch_embed_dim", 64)),
+        cnn=CNNConfig(**cnn_data) if cnn_data else None,
         bilstm=BiLSTMConfig(**bilstm_data) if bilstm_data else None,
         xlstm=XLSTMConfig(**xlstm_data) if xlstm_data else None,
+        transformer=TransformerConfig(**transformer_data) if transformer_data else None,
     )
 
 

@@ -13,11 +13,20 @@ from src.data.dataset import load_time_series_data
 from src.data.preprocessing import apply_preprocessing
 from src.data.windowing import build_dataloaders, build_windowed_splits
 from src.evaluation.evaluator import build_prediction_rows, evaluate_predictions
-from src.evaluation.plots import plot_batch_comparison, plot_loss, plot_predictions, plot_residuals
+from src.evaluation.plots import (
+    plot_batch_comparison,
+    plot_loss,
+    plot_predictions,
+    plot_residuals,
+)
 from src.evaluation.reports import write_batch_summary, write_run_summary
 from src.models import MODEL_REGISTRY
 from src.training.trainer import Trainer
-from src.utils.config import ExperimentConfig, experiment_config_to_dict, load_experiment_config
+from src.utils.config import (
+    ExperimentConfig,
+    experiment_config_to_dict,
+    load_experiment_config,
+)
 from src.utils.io import ensure_dir, save_dataframe, save_joblib, save_json, save_yaml
 from src.utils.logging import build_logger
 from src.utils.seed import set_global_seed
@@ -50,7 +59,7 @@ def prepare_run_config(
     if seed is not None:
         config.seed = seed
 
-    if preprocess_name not in {"norm", "wavelet", "patch"}:
+    if preprocess_name not in {"norm", "wavelet", "patch", "exp2_standard"}:
         raise ValueError(f"Unsupported preprocessing strategy: {preprocess_name}")
 
     return config
@@ -75,17 +84,36 @@ def run_experiment(
     )
     set_global_seed(config.seed)
 
-    run_root = ensure_dir(Path(config.outputs.root_dir) / config.experiment_name / preprocess_name)
+    run_root = ensure_dir(
+        Path(config.outputs.root_dir) / config.experiment_name / preprocess_name
+    )
     log_dir = ensure_dir(run_root / "logs")
     metrics_dir = ensure_dir(run_root / "metrics")
     plots_dir = ensure_dir(run_root / "plots")
     artifacts_dir = ensure_dir(run_root / "artifacts")
 
-    logger = build_logger(f"{config.experiment_name}_{preprocess_name}", log_dir / "run.log")
-    logger.info("Starting run for %s with preprocess=%s", config.experiment_name, preprocess_name)
+    logger = build_logger(
+        f"{config.experiment_name}_{preprocess_name}", log_dir / "run.log"
+    )
+    logger.info(
+        "Starting run for %s with preprocess=%s",
+        config.experiment_name,
+        preprocess_name,
+    )
     logger.info("Resolved device: %s", resolve_device(config.device))
 
     loaded_data = load_time_series_data(config.data)
+
+    if preprocess_name == "exp2_standard":
+        from src.data.exp2_preprocessing import apply_exp2_standard_preprocessing
+
+        preprocessed_frame, new_feature_cols = apply_exp2_standard_preprocessing(
+            loaded_data.frame, config.data.target_col
+        )
+        loaded_data = replace(
+            loaded_data, frame=preprocessed_frame, feature_cols=new_feature_cols
+        )
+
     config.data.feature_cols = loaded_data.feature_cols
     logger.info(
         "Loaded dataset with %d rows, target=%s, features=%s",
@@ -122,10 +150,23 @@ def run_experiment(
         input_kind=preprocessed_bundle.input_kind,
         model_config=config.model,
     )
-    logger.info("Model parameters: %d", sum(parameter.numel() for parameter in model.parameters()))
+    dummy_input = torch.zeros(
+        (1, config.window.lookback, preprocessed_bundle.input_dim)
+    )
+    with torch.no_grad():
+        model(dummy_input)
 
-    trainer = Trainer(model=model, config=config.training, device=resolve_device(config.device))
-    training_result = trainer.fit(dataloaders["train"], dataloaders["val"], logger=logger)
+    logger.info(
+        "Model parameters: %d",
+        sum(parameter.numel() for parameter in model.parameters()),
+    )
+
+    trainer = Trainer(
+        model=model, config=config.training, device=resolve_device(config.device)
+    )
+    training_result = trainer.fit(
+        dataloaders["train"], dataloaders["val"], logger=logger
+    )
 
     scaled_predictions = {}
     scaled_targets = {}
@@ -151,7 +192,10 @@ def run_experiment(
     )
     predictions_frame = pd.DataFrame(prediction_rows)
     metrics_frame = pd.DataFrame(
-        [{"split": split_name, **metrics_payload[split_name]} for split_name in ("train", "val", "test")]
+        [
+            {"split": split_name, **metrics_payload[split_name]}
+            for split_name in ("train", "val", "test")
+        ]
     )
 
     save_yaml(experiment_config_to_dict(config), run_root / "resolved_config.yaml")
@@ -225,6 +269,8 @@ def write_batch_outputs(results: list[dict[str, Any]], output_root: str | Path) 
     summary_dir = ensure_dir(Path(output_root) / "summary")
     summary_frame = pd.DataFrame(results).sort_values(["experiment_name", "preprocess"])
     save_dataframe(summary_frame, summary_dir / "exp1_ab_results.csv")
-    save_json(summary_frame.to_dict(orient="records"), summary_dir / "exp1_ab_results.json")
+    save_json(
+        summary_frame.to_dict(orient="records"), summary_dir / "exp1_ab_results.json"
+    )
     plot_batch_comparison(summary_frame, summary_dir / "exp1_ab_comparison.png")
     write_batch_summary(summary_dir / "exp1_ab_summary.md", results)
