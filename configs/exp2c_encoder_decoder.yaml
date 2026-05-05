@@ -1,6 +1,6 @@
 {
   "base_config": "base.yaml",
-  "experiment_name": "exp2a_vanilla_transformer",
+  "experiment_name": "exp2c_encoder_decoder",
   "data": {
     "path": "hf://datasets/CitrusBoy/EnergyPriceForecasting/final_dataset_full_clean_with_gas_no_processing.csv",
     "timestamp_col": "time",
@@ -9,11 +9,12 @@
     "resample_freq": null
   },
   "model": {
-    "name": "vanilla_transformer",
+    "name": "encoder_decoder_transformer",
     "transformer": {
       "d_model": 128,
       "nhead": 4,
       "num_layers": 3,
+      "num_decoder_layers": 3,
       "dim_feedforward": 256,
       "dropout": 0.1,
       "pool": "mean",

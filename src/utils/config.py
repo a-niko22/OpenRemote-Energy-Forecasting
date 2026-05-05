@@ -100,6 +100,11 @@ class TransformerConfig:
     dropout: float
     pool: str
     head_hidden_size: int
+    num_decoder_layers: int | None = None
+    fft_modes: int | None = None
+    fft_kind: str | None = None
+    kernel_type: str | None = None
+    feature_dim: int | None = None
 
 
 @dataclass

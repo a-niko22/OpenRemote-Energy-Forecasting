@@ -1,6 +1,6 @@
 {
   "base_config": "base.yaml",
-  "experiment_name": "exp2b_itransformer",
+  "experiment_name": "exp2e_itransformer",
   "data": {
     "path": "hf://datasets/CitrusBoy/EnergyPriceForecasting/final_dataset_full_clean_with_gas_no_processing.csv",
     "timestamp_col": "time",
