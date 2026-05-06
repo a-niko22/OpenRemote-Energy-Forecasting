@@ -23,7 +23,7 @@ class BasePreprocessor(ABC):
         pass
 
     @abstractmethod
-    def transform(self, X):
+    def transform(self, X, **kwargs):
         """Apply the learned transformation. Shape is preserved."""
         pass
 
