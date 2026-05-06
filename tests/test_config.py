@@ -32,6 +32,23 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.model.name, "cnn_bilstm")
         self.assertIsNotNone(config.model.bilstm)
 
+    def test_transformer_configs_load(self) -> None:
+        exp1c_config = load_experiment_config("configs/exp1c_cnn_bilstm_transformer.yaml")
+        self.assertEqual(exp1c_config.experiment_name, "exp1c_cnn_bilstm_transformer")
+        self.assertEqual(exp1c_config.model.name, "cnn_bilstm_transformer")
+        self.assertIsNotNone(exp1c_config.model.bilstm)
+        self.assertIsNotNone(exp1c_config.model.transformer)
+        self.assertIsNone(exp1c_config.model.xlstm)
+        self.assertEqual(exp1c_config.model.transformer.d_model, 128)
+
+        exp1d_config = load_experiment_config("configs/exp1d_cnn_transformer.yaml")
+        self.assertEqual(exp1d_config.experiment_name, "exp1d_cnn_transformer")
+        self.assertEqual(exp1d_config.model.name, "cnn_transformer")
+        self.assertIsNone(exp1d_config.model.bilstm)
+        self.assertIsNone(exp1d_config.model.xlstm)
+        self.assertIsNotNone(exp1d_config.model.transformer)
+        self.assertEqual(exp1d_config.window.horizon, 24)
+
     def test_cli_override_precedence(self) -> None:
         tmp_dir = make_test_dir()
         try:
