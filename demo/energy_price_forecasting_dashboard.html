@@ -1,0 +1,351 @@
+
+<h2 class="sr-only">Dutch electricity price forecasting dashboard showing historical prices and AI-generated 48-hour forecast</h2>
+
+<style>
+  :root {
+    --dash-color-ok:      #3b9e75;
+    --dash-color-warn:    #ba7517;
+    --dash-color-error:   #a32d2d;
+    --dash-color-hist:    #185FA5;
+    --dash-color-fcast:   #0F6E56;
+    --dash-color-band:    rgba(29,158,117,0.15);
+    --dash-color-grid:    rgba(136,135,128,0.12);
+    --dash-color-tick:    #888780;
+  }
+  .dash-header { padding: 1.5rem 0 1rem; }
+  .dash-header h1 { font-size: 18px; font-weight: 500; margin: 0 0 4px; color: var(--color-text-primary); }
+  .dash-header p { font-size: 13px; color: var(--color-text-secondary); margin: 0; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
+  .metric-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+  .metric-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+  .metric-sub { font-size: 11px; color: var(--color-text-tertiary); margin: 2px 0 0; }
+  .chart-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .chart-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .ctrl-label { font-size: 12px; color: var(--color-text-secondary); }
+  .ctrl-btn { font-size: 12px; padding: 4px 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+  .ctrl-btn.active { background: var(--color-background-info); color: var(--color-text-info); border-color: transparent; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 10px; font-size: 12px; color: var(--color-text-secondary); }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+  /* dashed swatch for forecast legend */
+  .legend-dash { width: 18px; height: 2px; border-top: 2px dashed var(--dash-color-fcast); }
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 1rem; }
+  .feature-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.6rem 0.85rem; display: flex; align-items: center; gap: 8px; }
+  .feature-icon { font-size: 18px; color: var(--color-text-secondary); }
+  .feature-text { font-size: 12px; }
+  .feature-text strong { display: block; font-weight: 500; font-size: 14px; color: var(--color-text-primary); }
+  .status-bar { font-size: 12px; color: var(--color-text-secondary); padding: 8px 0; display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dash-color-ok); display: inline-block; }
+  .status-dot.loading { background: var(--dash-color-warn); animation: pulse 1s infinite; }
+  .status-dot.error { background: var(--dash-color-error); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .insight-box { border-left: 2px solid var(--dash-color-hist); border-radius: 0; background: var(--color-background-secondary); padding: 0.75rem 1rem; font-size: 13px; color: var(--color-text-primary); line-height: 1.6; margin-top: 0.5rem; }
+  .insight-box .ins-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-tertiary); margin-bottom: 4px; }
+  .thinking { color: var(--color-text-tertiary); font-style: italic; }
+  .insight-error { color: var(--color-text-danger, var(--dash-color-error)); }
+  .insight-hint { font-size: 12px; color: var(--color-text-tertiary); margin-top: 6px; font-family: monospace; }
+</style>
+
+<div class="dash-header">
+  <h1><i class="ti ti-bolt" aria-hidden="true" style="font-size:18px;vertical-align:-2px;margin-right:6px;"></i>Dutch electricity price dashboard</h1>
+  <p>Historical EPEX day-ahead prices · Netherlands · Chronos-Bolt 48-hour forecast</p>
+</div>
+
+<div class="metrics" id="metrics">
+  <div class="metric"><p class="metric-label">Latest price</p><p class="metric-value" id="m-latest">—</p><p class="metric-sub">€/MWh</p></div>
+  <div class="metric"><p class="metric-label">7-day avg</p><p class="metric-value" id="m-avg">—</p><p class="metric-sub">€/MWh</p></div>
+  <div class="metric"><p class="metric-label">7-day peak</p><p class="metric-value" id="m-peak">—</p><p class="metric-sub">€/MWh</p></div>
+  <div class="metric"><p class="metric-label">7-day low</p><p class="metric-value" id="m-low">—</p><p class="metric-sub">€/MWh</p></div>
+</div>
+
+<div class="chart-card">
+  <div class="chart-controls">
+    <span class="ctrl-label">View window:</span>
+    <button class="ctrl-btn" data-days="3" onclick="setWindow(3)">3 days</button>
+    <button class="ctrl-btn active" data-days="7" onclick="setWindow(7)">7 days</button>
+    <button class="ctrl-btn" data-days="14" onclick="setWindow(14)">14 days</button>
+  </div>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--dash-color-hist);"></span>Historical price</span>
+    <span class="legend-item"><span class="legend-dash"></span>Chronos forecast</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--dash-color-band);border:1px solid var(--dash-color-fcast);opacity:0.8;"></span>Forecast range (p10–p90)</span>
+  </div>
+  <div style="position:relative;width:100%;height:280px;">
+    <canvas id="priceChart"
+            role="img"
+            aria-label="Line chart of historical Dutch electricity prices and 48-hour Chronos-Bolt forecast with p10–p90 confidence band"></canvas>
+  </div>
+</div>
+
+<div class="feature-grid" id="feat-grid" style="display:none;">
+  <div class="feature-card"><i class="ti ti-thermometer feature-icon" aria-hidden="true"></i><div class="feature-text"><strong id="f-temp">—</strong>Temperature</div></div>
+  <div class="feature-card"><i class="ti ti-wind feature-icon" aria-hidden="true"></i><div class="feature-text"><strong id="f-wind">—</strong>Wind speed</div></div>
+  <div class="feature-card"><i class="ti ti-cloud feature-icon" aria-hidden="true"></i><div class="feature-text"><strong id="f-cloud">—</strong>Cloud cover</div></div>
+  <div class="feature-card"><i class="ti ti-sun feature-icon" aria-hidden="true"></i><div class="feature-text"><strong id="f-solar">—</strong>Solar rad.</div></div>
+  <div class="feature-card"><i class="ti ti-database feature-icon" aria-hidden="true"></i><div class="feature-text"><strong id="f-load">—</strong>Total load</div></div>
+  <div class="feature-card"><i class="ti ti-chart-arrows-vertical feature-icon" aria-hidden="true"></i><div class="feature-text"><strong id="f-gen">—</strong>Gen forecast</div></div>
+</div>
+
+<div class="chart-card">
+  <div class="insight-box" id="insight-box">
+    <div class="ins-label">Chronos analysis</div>
+    <span class="thinking">Loading price data and generating forecast…</span>
+  </div>
+</div>
+
+<div class="status-bar">
+  <span class="status-dot loading" id="status-dot"></span>
+  <span id="status-text">Fetching dataset from HuggingFace…</span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+'use strict';
+let chart = null;
+let allData = [];
+let forecastData = [];
+let windowDays = 7;
+
+const FORECAST_SERVICE = 'http://localhost:8001/forecast';
+
+// CSS custom properties resolve at runtime — read once so chart colours respect theme.
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || name;
+}
+
+function setStatus(msg, state) {
+  document.getElementById('status-text').textContent = msg;
+  const dot = document.getElementById('status-dot');
+  dot.className = 'status-dot' + (state === 'loading' ? ' loading' : state === 'error' ? ' error' : '');
+}
+
+function showInsightError(headline, hint) {
+  document.getElementById('insight-box').innerHTML =
+    `<div class="ins-label">Error</div>` +
+    `<span class="insight-error">${headline}</span>` +
+    (hint ? `<div class="insight-hint">${hint}</div>` : '');
+}
+
+function setWindow(days) {
+  windowDays = days;
+  document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.toggle('active', +b.dataset.days === days));
+  renderChart();
+}
+
+async function fetchDataset() {
+  setStatus('Fetching dataset from HuggingFace…', 'loading');
+
+  // offset=93000 targets the tail of the CitrusBoy/EnergyPriceForecasting Gas split
+  // (~95 k rows total as of dataset v1). This is a static offset: if the dataset grows
+  // a dynamic approach (fetch total row count first, then offset = total - 2000) would
+  // be more reliable but costs an extra round-trip. Revisit if rows shift noticeably.
+  const url =
+    'https://datasets-server.huggingface.co/rows' +
+    '?dataset=CitrusBoy%2FEnergyPriceForecasting&config=Gas&split=train' +
+    '&offset=93000&length=2000';
+
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('HuggingFace fetch failed: ' + r.status);
+  const json = await r.json();
+  return json.rows.map(row => row.row).filter(r => r.time && r.price != null);
+}
+
+function computeMetrics(data) {
+  const last7 = data.slice(-168);
+  const latest = data[data.length - 1];
+  document.getElementById('m-latest').textContent = latest.price.toFixed(1);
+  const avg = last7.reduce((s, d) => s + d.price, 0) / last7.length;
+  document.getElementById('m-avg').textContent = avg.toFixed(1);
+  document.getElementById('m-peak').textContent = Math.max(...last7.map(d => d.price)).toFixed(1);
+  document.getElementById('m-low').textContent = Math.min(...last7.map(d => d.price)).toFixed(1);
+
+  const feat = latest;
+  document.getElementById('feat-grid').style.display = 'grid';
+  document.getElementById('f-temp').textContent = feat.temperature_2m != null ? feat.temperature_2m.toFixed(1) + ' °C' : '—';
+  document.getElementById('f-wind').textContent = feat.wind_speed_10m != null ? feat.wind_speed_10m.toFixed(1) + ' km/h' : '—';
+  document.getElementById('f-cloud').textContent = feat.cloud_cover != null ? (feat.cloud_cover * 100).toFixed(0) + '%' : '—';
+  document.getElementById('f-solar').textContent = feat.shortwave_radiation != null ? feat.shortwave_radiation.toFixed(0) + ' W/m²' : '—';
+  document.getElementById('f-load').textContent = feat.total_load != null ? (feat.total_load / 1000).toFixed(1) + ' GW' : '—';
+  document.getElementById('f-gen').textContent = feat.generation_forecast != null ? feat.generation_forecast.toFixed(0) + ' MW' : '—';
+}
+
+function renderChart() {
+  const hoursBack = windowDays * 24;
+  const hist = allData.slice(-hoursBack);
+  const histLabels = hist.map(d => d.time.slice(5, 16).replace('T', ' '));
+  const histPrices = hist.map(d => d.price);
+  const fcastLabels = forecastData.map(d => d.label);
+  const fcastPrices = forecastData.map(d => d.price);
+  const fcastLow = forecastData.map(d => d.low);
+  const fcastHigh = forecastData.map(d => d.high);
+
+  const allLabels = [...histLabels, ...fcastLabels];
+  const pivot = histLabels.length;
+
+  // Bridge the gap between historical tail and forecast head with one shared point.
+  const lastHistPrice = histPrices[histPrices.length - 1];
+  const histLine = [...histPrices, ...Array(fcastLabels.length).fill(null)];
+  const fcastLine = [...Array(pivot - 1).fill(null), lastHistPrice, ...fcastPrices];
+  // Band high (index 2) uses fill: '+1' → fills down to Band low (index 3). Order matters.
+  const bandHigh = [...Array(pivot - 1).fill(null), lastHistPrice, ...fcastHigh];
+  const bandLow  = [...Array(pivot - 1).fill(null), lastHistPrice, ...fcastLow];
+
+  const colorHist  = cssVar('--dash-color-hist')  || '#185FA5';
+  const colorFcast = cssVar('--dash-color-fcast') || '#0F6E56';
+  const colorBand  = cssVar('--dash-color-band')  || 'rgba(29,158,117,0.15)';
+  const colorGrid  = cssVar('--dash-color-grid')  || 'rgba(136,135,128,0.12)';
+  const colorTick  = cssVar('--dash-color-tick')  || '#888780';
+
+  if (chart) { chart.destroy(); chart = null; }
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: allLabels,
+      datasets: [
+        {
+          label: 'Historical',
+          data: histLine,
+          borderColor: colorHist,
+          borderWidth: 1.5,
+          pointRadius: 0,
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          label: 'Forecast',
+          data: fcastLine,
+          borderColor: colorFcast,
+          borderWidth: 1.5,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          tension: 0.3,
+          fill: false,
+        },
+        {
+          // Must be index 2 — fill: '+1' fills to the next dataset (index 3 = Band low).
+          label: 'Band high',
+          data: bandHigh,
+          borderColor: 'transparent',
+          borderWidth: 0,
+          pointRadius: 0,
+          fill: '+1',
+          backgroundColor: colorBand,
+          tension: 0.3,
+        },
+        {
+          label: 'Band low',
+          data: bandLow,
+          borderColor: 'transparent',
+          borderWidth: 0,
+          pointRadius: 0,
+          fill: false,
+          tension: 0.3,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: ctx => {
+              if (ctx.dataset.label === 'Band high' || ctx.dataset.label === 'Band low') return null;
+              const v = ctx.parsed.y;
+              if (v == null) return null;
+              return `${ctx.dataset.label}: ${v.toFixed(1)} €/MWh`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          ticks: { maxTicksLimit: 8, maxRotation: 0, font: { size: 11 }, color: colorTick },
+          grid: { color: colorGrid },
+        },
+        y: {
+          title: { display: true, text: '€/MWh', font: { size: 11 }, color: colorTick },
+          ticks: { font: { size: 11 }, color: colorTick, callback: v => Math.round(v) },
+          grid: { color: colorGrid },
+        },
+      },
+      animation: { duration: 400 },
+    },
+  });
+}
+
+async function generateForecast(recentData) {
+  setStatus('Requesting 48-hour Chronos-Bolt forecast…', 'loading');
+
+  // Send last 168 hours (7 days) as context — Chronos-Bolt performs best with ≥ 7-day context.
+  const prices = recentData.slice(-168).map(d => +d.price.toFixed(4));
+  const lastTime = new Date(recentData[recentData.length - 1].time);
+
+  let resp;
+  try {
+    resp = await fetch(FORECAST_SERVICE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prices }),
+    });
+  } catch (networkErr) {
+    showInsightError(
+      'Cannot reach the forecast service.',
+      '$ uvicorn forecast_service:app --port 8001',
+    );
+    throw new Error('Forecast service unreachable — is it running on port 8001?');
+  }
+
+  if (!resp.ok) {
+    const detail = await resp.text().catch(() => resp.statusText);
+    showInsightError('Forecast service returned an error: ' + resp.status, detail);
+    throw new Error('Forecast service error ' + resp.status + ': ' + detail);
+  }
+
+  const data = await resp.json();
+
+  forecastData = data.forecast.map((f, i) => {
+    const t = new Date(lastTime.getTime() + (i + 1) * 3_600_000);
+    const mm = String(t.getMonth() + 1).padStart(2, '0');
+    const dd = String(t.getDate()).padStart(2, '0');
+    const hh = String(t.getHours()).padStart(2, '0');
+    return {
+      label: `${mm}-${dd} ${hh}:00`,
+      price: +f.price.toFixed(2),
+      low:   +f.low.toFixed(2),
+      high:  +f.high.toFixed(2),
+    };
+  });
+
+  document.getElementById('insight-box').innerHTML =
+    `<div class="ins-label">Chronos analysis</div>${data.analysis}`;
+}
+
+async function init() {
+  try {
+    const rows = await fetchDataset();
+    allData = rows;
+    computeMetrics(allData);
+    await generateForecast(allData);
+    renderChart();
+    setStatus(
+      `Loaded ${allData.length} rows · Chronos-Bolt forecast ready · Source: CitrusBoy/EnergyPriceForecasting`,
+      'ok',
+    );
+  } catch (e) {
+    setStatus('Error: ' + e.message, 'error');
+    // Only overwrite the insight box if generateForecast hasn't already set a specific message.
+    const box = document.getElementById('insight-box');
+    if (!box.querySelector('.insight-error')) {
+      showInsightError(e.message);
+    }
+  }
+}
+
+init();
+</script>
