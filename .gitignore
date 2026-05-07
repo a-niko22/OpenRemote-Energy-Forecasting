@@ -65,3 +65,7 @@ Thumbs.db
 tests/.tmp/
 
 .claude/
+
+# Portfolio-only local documents
+docs/portfolio/
+README.md
