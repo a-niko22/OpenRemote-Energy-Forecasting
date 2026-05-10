@@ -1,9 +1,11 @@
-# Exp.1.c/d Results Snapshot
+# Exp.1.c/d Local Validation Results Snapshot
 
 ## Scope
 
 - Exp.1.c CNN-BiLSTM-Transformer
 - Exp.1.d CNN-Transformer
+
+These are local validation runs and do not replace the shared experiment application workflow.
 
 ## Preprocessing Methods
 
@@ -34,6 +36,6 @@
 
 CNN-Transformer performed better than CNN-BiLSTM-Transformer across the completed Exp.1.c/d runs. Adding BiLSTM before the Transformer did not improve performance in this setup.
 
-CNN-Transformer + norm is the strongest Experiment 1 result so far based on MAE and RMSE.
+CNN-Transformer + norm is the strongest configuration in these local validation runs based on MAE and RMSE.
 
 MAPE should not be used as the main ranking metric because electricity prices near zero make percentage errors unstable. MAE and RMSE are the reliable comparison metrics for these runs.

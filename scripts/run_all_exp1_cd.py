@@ -1,4 +1,7 @@
-"""Sequential batch runner for the six Experiment 1.c/d runs."""
+"""Optional local validation helper for the six Experiment 1.c/d runs.
+
+This is not the official shared experiment application entrypoint.
+"""
 
 from __future__ import annotations
 

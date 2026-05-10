@@ -12,7 +12,39 @@ from src.models.layers import (
     SinusoidalPositionalEncoding,
     TransformerEncoderBlock,
 )
-from src.utils.config import ModelConfig
+from src.utils.config import BiLSTMConfig, CNNConfig, ModelConfig, TransformerConfig
+
+
+def _default_model_config() -> ModelConfig:
+    return ModelConfig(
+        name="cnn_bilstm_transformer",
+        patch_embed_dim=64,
+        cnn=CNNConfig(
+            conv_channels=[64, 128],
+            kernel_size=3,
+            use_pooling=False,
+            pool_kernel=2,
+            activation="relu",
+            dropout=0.1,
+        ),
+        bilstm=BiLSTMConfig(
+            hidden_size=128,
+            num_layers=2,
+            dropout=0.2,
+            head_hidden_size=128,
+        ),
+        transformer=TransformerConfig(
+            d_model=128,
+            nhead=4,
+            num_layers=2,
+            dim_feedforward=256,
+            dropout=0.2,
+            activation="relu",
+            pooling="mean",
+            head_hidden_size=128,
+            max_len=10000,
+        ),
+    )
 
 
 class CNNBiLSTMTransformerModel(nn.Module):
@@ -22,10 +54,11 @@ class CNNBiLSTMTransformerModel(nn.Module):
         self,
         input_dim: int,
         horizon: int,
-        input_kind: str,
-        model_config: ModelConfig,
+        input_kind: str = "sequence",
+        model_config: ModelConfig | None = None,
     ):
         super().__init__()
+        model_config = model_config or _default_model_config()
         if model_config.bilstm is None:
             raise ValueError("BiLSTM configuration is required for CNNBiLSTMTransformerModel.")
         if model_config.transformer is None:
