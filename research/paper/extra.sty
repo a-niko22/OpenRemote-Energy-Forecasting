@@ -1,0 +1,112 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GLOSSARY
+% \overeq{} text over equals sign with correct spacing around it
+% \aovereq{} idem, but also has alignment
+% \set{} makes a set!
+% \setof{}{} for set construction, first argument is left of the bar, second argument is right of the bar
+% \NN natural numbers
+% \nxrightarrow{} like xrightarrow but with a strikethrough
+% \bisim bisimilarity symbol
+% \nbisim not bisimilar symbol
+% \accept{} down arrow, the argument is left superscript (for conditional acceptance)
+% \naccept{} idem, but with a strikethrough
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\RequirePackage{tikz}
+\usetikzlibrary{positioning, quotes, decorations.pathmorphing, arrows.meta, shapes}
+\RequirePackage{leftindex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TIKZ
+\tikzset{>={Computer Modern Rightarrow[scale=1.2]}}
+\tikzset{snake it/.style={decorate, decoration={snake, amplitude=1.5pt, segment length=15pt}}}
+\tikzset{node/.style={, draw=black, fill=white, minimum size=6mm, circle, thin, inner sep=0mm}}
+\tikzset{finalnode/.style={, draw=black, fill=white, minimum size=6mm, circle, thin, double, inner sep=0mm}}
+\tikzset{dot/.style={circle, fill, inner sep=1.5pt}}
+\tikzset{triple/.style={-, preaction={draw, double equal sign distance, -Implies}}}
+\tikzset{dashed triple/.style={-, dashed, preaction={draw, double equal sign distance, -Implies, dashed}}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GENERIC SYMBOLS/COMMANDS
+% Text over equal sign with proper spacing
+% (use outside of align environment)
+\newlength\oversetwidth
+\newlength\underwidth
+\newcommand{\overeq}[1]
+{\ensuremath{
+  % #1 = over
+  \settowidth\oversetwidth{$\overset{\mathrm{#1}}{=}$}
+  \settowidth\underwidth{$=$}
+  \setlength\oversetwidth{\oversetwidth-\underwidth}
+  \hspace{.5\oversetwidth}
+  \settowidth\oversetwidth{$\overset{\mathrm{#1}}{=}$}
+  \settowidth\underwidth{$=$}
+  \setlength\oversetwidth{\oversetwidth-\underwidth}
+  \hspace{-.5\oversetwidth}
+  \overset{\mathrm{#1}}{=}
+}}
+
+% Text over equal sign with proper spacing and alignment
+\newcommand\aovereq[1]{
+\ensuremath{
+  % #1 = over
+  \settowidth\oversetwidth{$\overset{\mathrm{#1}}{=}$}
+  \settowidth\underwidth{$=$}
+  \setlength\oversetwidth{\oversetwidth-\underwidth}
+  \hspace{.5\oversetwidth}
+  &
+  \settowidth\oversetwidth{$\overset{\mathrm{#1}}{=}$}
+  \settowidth\underwidth{$=$}
+  \setlength\oversetwidth{\oversetwidth-\underwidth}
+  \hspace{-.5\oversetwidth}
+  \overset{\mathrm{#1}}{=}
+}}
+
+% {x | y} shorthand
+\newcommand{\setof}[2]{
+\ensuremath{
+\{#1\,|\,#2\}
+}}
+\newcommand{\Setof}[2]{
+\ensuremath{
+\left\{#1\,|\,#2\right\}
+}}
+
+% {x} shorthand
+\newcommand{\set}[1]{
+\ensuremath{
+\{#1\}
+}}
+\newcommand{\Set}[1]{
+\ensuremath{
+\left\{#1\right\}
+}}
+
+\newcommand\NN{\mathbb{N}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Not xrightarrow
+\newlength\arrowwidth
+\newcommand\nxrightarrow[1]{
+    \settowidth\arrowwidth{$\xrightarrow{#1}$}
+    \rlap{$\xrightarrow{#1}$}
+    \hspace{.5\arrowwidth}
+    \clap{\raisebox{.125em}{\tiny/}}
+    \hspace{.5\arrowwidth}
+}
+
+% Bisimilarity symbols
+\newcommand\bisim{\mathrel{\underline{\!\leftrightarrow\!}}}
+\newcommand\nbisim{\not{\mskip-1.8\thickmuskip}\bisim}
+
+% Better downarrow
+\newcommand\notdownarrow{\!\not{\mskip-1.3\thickmuskip}\downarrow}
+
+\newcommand\accept[1]{
+    \leftindex^{#1}\downarrow
+}
+
+\newcommand\naccept[1]{
+    \leftindex^{#1}\notdownarrow
+}
