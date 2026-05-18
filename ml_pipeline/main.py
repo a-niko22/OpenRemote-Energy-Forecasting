@@ -47,6 +47,10 @@ from test_models_and_preprocessors.minmax_preprocessor import MinMaxPreprocessor
 from test_models_and_preprocessors.mean_model import MeanModel
 from test_models_and_preprocessors.zero_model import ZeroModel
 
+from models.exp1_ab_models import (
+    CNNBiLSTMPipelineModel,
+    CNNXLSTMPipelineModel,
+)
 from models.exp1_cd_models import (
     CNNBiLSTMTransformerPipelineModel,
     CNNTransformerPipelineModel,
@@ -141,6 +145,11 @@ def demo():
     parser.add_argument("--val-ratio", type=float, default=0.15)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
+        "--include-exp1-ab",
+        action="store_true",
+        help="Also run the Exp.1.a/b ml_pipeline wrapper examples.",
+    )
+    parser.add_argument(
         "--include-exp1-cd",
         action="store_true",
         help="Also run the Exp.1.c/d ml_pipeline wrapper examples.",
@@ -170,6 +179,20 @@ def demo():
         Experiment("Zero baseline",  IdentityPreprocessor(), ZeroModel()),
         Experiment("MinMax + Mean",  MinMaxPreprocessor(),   MeanModel()),
     ]
+
+    if args.include_exp1_ab:
+        experiments.extend([
+            Experiment(
+                "Exp1.a CNN-BiLSTM",
+                IdentityPreprocessor(),
+                CNNBiLSTMPipelineModel(seed=args.seed),
+            ),
+            Experiment(
+                "Exp1.b CNN-xLSTM",
+                IdentityPreprocessor(),
+                CNNXLSTMPipelineModel(seed=args.seed),
+            ),
+        ])
 
     if args.include_exp1_cd:
         experiments.extend([
