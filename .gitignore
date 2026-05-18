@@ -11,6 +11,10 @@ __pycache__/
 *.pyd
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+.hypothesis/
+.nox/
+.tox/
 
 # Jupyter
 .ipynb_checkpoints/
@@ -20,6 +24,18 @@ saved_models/
 results/
 results-*/
 predictions/
+outputs/**
+!outputs/.gitkeep
+!outputs/summary/
+outputs/summary/**
+!outputs/summary/.gitkeep
+outputs_gpu_probe/
+wandb/
+mlruns/
+lightning_logs/
+runs/
+tensorboard/
+events.out.tfevents*
 checkpoints/
 *.pkl
 *.pt
@@ -28,6 +44,16 @@ checkpoints/
 # Environment files
 .env
 *.env
+
+# Packaging / coverage
+build/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 
 # IDE / OS
 .vscode/
@@ -39,4 +65,14 @@ Thumbs.db
 # Local logs
 *.log
 
+.tmp/
+.pip-cache/
+.vendor/
+.wheels/
+tests/.tmp/
+
 .claude/
+
+# Portfolio-only local documents
+docs/portfolio/
+README.md
