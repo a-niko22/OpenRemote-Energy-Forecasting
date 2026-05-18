@@ -36,7 +36,6 @@ import argparse
 import random
 import numpy as np
 
-from data.loader import load_dataset, chronological_split
 from pipeline.experiment import Experiment
 from pipeline.experiment_runner import ExperimentRunner
 
@@ -48,7 +47,10 @@ from test_models_and_preprocessors.minmax_preprocessor import MinMaxPreprocessor
 from test_models_and_preprocessors.mean_model import MeanModel
 from test_models_and_preprocessors.zero_model import ZeroModel
 
-# import your own models and preprocessors here
+from models.exp1_cd_models import (
+    CNNBiLSTMTransformerPipelineModel,
+    CNNTransformerPipelineModel,
+)
 
 
 
@@ -69,6 +71,8 @@ def run_experiments(experiments,
     You normally do not need to call this directly. demo() wraps it with CLI
     arguments. Call this from a notebook if you want to script runs.
     """
+    from data.loader import load_dataset, chronological_split
+
     # Seed everything we control here. If your model uses PyTorch/TF, ALSO seed
     # those inside your model's __init__ or fit() (torch.manual_seed,
     # tf.random.set_seed). The pipeline cannot do that for you.
@@ -136,6 +140,11 @@ def demo():
     parser.add_argument("--train-ratio", type=float, default=0.7)
     parser.add_argument("--val-ratio", type=float, default=0.15)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--include-exp1-cd",
+        action="store_true",
+        help="Also run the Exp.1.c/d ml_pipeline wrapper examples.",
+    )
     args = parser.parse_args()
 
     # =========================================================================
@@ -160,8 +169,21 @@ def demo():
         Experiment("Mean baseline",  IdentityPreprocessor(), MeanModel()),
         Experiment("Zero baseline",  IdentityPreprocessor(), ZeroModel()),
         Experiment("MinMax + Mean",  MinMaxPreprocessor(),   MeanModel()),
-        # TODO: add your experiments below this line.
     ]
+
+    if args.include_exp1_cd:
+        experiments.extend([
+            Experiment(
+                "Exp1.c CNN-BiLSTM-Transformer",
+                IdentityPreprocessor(),
+                CNNBiLSTMTransformerPipelineModel(seed=args.seed),
+            ),
+            Experiment(
+                "Exp1.d CNN-Transformer",
+                IdentityPreprocessor(),
+                CNNTransformerPipelineModel(seed=args.seed),
+            ),
+        ])
 
     results = run_experiments(
         experiments,
