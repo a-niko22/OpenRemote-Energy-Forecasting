@@ -275,10 +275,17 @@ class _TorchForecastingPipelineModel(BaseModel):
             raise RuntimeError("Model must be fitted before calling predict().")
 
         X_array = self._ensure_3d_features(X)
-        tensor = torch.from_numpy(X_array).to(self.device)
+        if len(X_array) == 0:
+            return np.empty((0, self.horizon), dtype=np.float32)
+
         self.model.eval()
+        batch_size = max(1, self.default_batch_size)
+        outputs = []
         with torch.no_grad():
-            predictions = self.model(tensor).detach().cpu().numpy()
+            for start in range(0, len(X_array), batch_size):
+                batch = torch.from_numpy(X_array[start:start + batch_size]).to(self.device)
+                outputs.append(self.model(batch).detach().cpu().numpy())
+        predictions = np.concatenate(outputs, axis=0)
         return np.asarray(predictions, dtype=np.float32).reshape(len(X_array), self.horizon)
 
     def get_config(self):
