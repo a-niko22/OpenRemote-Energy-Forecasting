@@ -1,4 +1,4 @@
-"""Shape tests for both models under all supported input kinds."""
+"""Shape tests for all models under supported input kinds."""
 
 from __future__ import annotations
 
@@ -10,6 +10,8 @@ from src.models.cnn_bilstm import CNNBiLSTMModel
 from src.models.cnn_bilstm_transformer import CNNBiLSTMTransformerModel
 from src.models.cnn_transformer import CNNTransformerModel
 from src.models.cnn_xlstm import CNNXLSTMModel
+from src.models.vanilla_transformer import VanillaTransformerModel
+from src.models.itransformer import ITransformerModel
 from src.utils.config import load_experiment_config
 
 
@@ -40,6 +42,31 @@ class ModelShapeTests(unittest.TestCase):
         outputs = model(torch.randn(4, 7, 12))
         self.assertEqual(tuple(outputs.shape), (4, 5))
 
+<<<<<<< HEAD
+    def test_vanilla_transformer_sequence_shapes(self) -> None:
+        config = load_experiment_config("configs/exp2a_vanilla_transformer.yaml")
+        model = VanillaTransformerModel(input_dim=6, horizon=5, input_kind="sequence", model_config=config.model)
+        outputs = model(torch.randn(4, 16, 6))
+        self.assertEqual(tuple(outputs.shape), (4, 5))
+
+    def test_vanilla_transformer_last_pool_shapes(self) -> None:
+        config = load_experiment_config("configs/exp2a_vanilla_transformer.yaml")
+        config.model.transformer.pool = "last"
+        model = VanillaTransformerModel(input_dim=6, horizon=5, input_kind="sequence", model_config=config.model)
+        outputs = model(torch.randn(4, 16, 6))
+        self.assertEqual(tuple(outputs.shape), (4, 5))
+
+    def test_itransformer_sequence_shapes(self) -> None:
+        config = load_experiment_config("configs/exp2b_itransformer.yaml")
+        model = ITransformerModel(input_dim=6, horizon=5, input_kind="sequence", model_config=config.model)
+        outputs = model(torch.randn(4, 16, 6))
+        self.assertEqual(tuple(outputs.shape), (4, 5))
+
+    def test_itransformer_single_channel_shapes(self) -> None:
+        config = load_experiment_config("configs/exp2b_itransformer.yaml")
+        model = ITransformerModel(input_dim=1, horizon=5, input_kind="sequence", model_config=config.model)
+        outputs = model(torch.randn(4, 16, 1))
+=======
     def test_cnn_bilstm_transformer_sequence_shapes(self) -> None:
         config = load_experiment_config("configs/exp1c_cnn_bilstm_transformer.yaml")
         model = CNNBiLSTMTransformerModel(input_dim=6, horizon=5, input_kind="sequence", model_config=config.model)
@@ -72,6 +99,7 @@ class ModelShapeTests(unittest.TestCase):
     def test_cnn_transformer_minimal_constructor_shapes(self) -> None:
         model = CNNTransformerModel(input_dim=12, horizon=5)
         outputs = model(torch.randn(4, 16, 12))
+>>>>>>> db710b893c063d6fcf02a3b209b2fb5d4116ddf4
         self.assertEqual(tuple(outputs.shape), (4, 5))
 
 

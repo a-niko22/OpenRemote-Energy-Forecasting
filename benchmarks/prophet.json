@@ -1,0 +1,25 @@
+{
+  "model": "prophet",
+  "timestamp": "2026-05-20T21:04:22.473744",
+  "data_rows": 8760,
+  "forecast_horizon_hours": 48,
+  "held_out_test": {
+    "MAE": 0.012084,
+    "RMSE": 0.016177,
+    "MAPE": 15.1307,
+    "coverage_pct": 79.17
+  },
+  "cross_validation": {
+    "MAE": 0.012897,
+    "RMSE": 0.016208,
+    "MAPE": 20.3367,
+    "coverage_pct": 79.96
+  },
+  "prophet_config": {
+    "yearly_seasonality": true,
+    "weekly_seasonality": true,
+    "daily_seasonality": true,
+    "seasonality_mode": "multiplicative",
+    "changepoint_prior_scale": 0.1
+  }
+}
