@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Repository Experiments vs Prophet Benchmark</title>
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --ink: #18201d;
+      --muted: #64706b;
+      --line: #d8d0c4;
+      --panel: #fffdf8;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --accent-3: #9f1239;
+      --shadow: 0 18px 45px rgba(24, 32, 29, 0.08);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Aptos", "Segoe UI", Tahoma, sans-serif;
+      line-height: 1.5;
+    }
+    .wrap {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(120deg, #fffdf8 0%, #edf4ef 54%, #f7eadb 100%);
+      padding: 42px 0 30px;
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1.04;
+    }
+    .subtitle {
+      max-width: 920px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+    main {
+      padding: 26px 0 56px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 18px;
+      margin-top: 18px;
+      box-shadow: var(--shadow);
+    }
+    .stats {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .k {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin: 0 0 7px;
+      font-weight: 700;
+    }
+    .v {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .n {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 290px 1fr 92px;
+      gap: 12px;
+      align-items: center;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+    .bar-bg {
+      height: 13px;
+      border-radius: 999px;
+      background: #e4ded4;
+      overflow: hidden;
+    }
+    .bar {
+      height: 100%;
+      border-radius: inherit;
+    }
+    .bar.exp {
+      background: var(--accent);
+    }
+    .bar.prophet {
+      background: var(--accent-2);
+    }
+    .chart-note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .note {
+      border-left: 4px solid var(--accent-3);
+      background: #fff8ec;
+      padding: 14px 16px;
+      color: #43362b;
+      border-radius: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 14px;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background: #ebe5da;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    tr:last-child td {
+      border-bottom: 0;
+    }
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    @media (max-width: 900px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+      .bar-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .num {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="eyebrow">Experiment Comparison</p>
+      <h1>Repository Experiments vs Prophet Benchmark</h1>
+      <p class="subtitle">
+        Full comparison across all tracked Experiment 1 runs (1a/1b/1c/1d) and Prophet benchmark variants.
+      </p>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="stats">
+      <article class="panel">
+        <p class="k">Total Compared Runs</p>
+        <p class="v">14</p>
+        <p class="n">12 Exp.1 runs + 2 Prophet runs</p>
+      </article>
+      <article class="panel">
+        <p class="k">Experiment Families</p>
+        <p class="v">1a, 1b, 1c, 1d</p>
+        <p class="n">Each with norm, wavelet, patch preprocessing</p>
+      </article>
+      <article class="panel">
+        <p class="k">Prophet Variants</p>
+        <p class="v">held-out + CV</p>
+        <p class="n">Coverage is reported for both Prophet variants</p>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 10px;">All-Run Comparison Figure</h2>
+      <img src="./assets/prophet_vs_repo_comparison.svg" alt="Repository experiments versus Prophet benchmark chart">
+      <p class="chart-note">Left side uses log scale so Prophet and Exp.1 can appear together; right side keeps Exp.1-only linear ranking.</p>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 10px;">MAE Comparison Across All Runs</h2>
+      <div class="bar-row"><span>Exp.1.a CNN-BiLSTM + norm</span><div class="bar-bg"><div class="bar exp" style="width: 74.37%"></div></div><strong>29.649900</strong></div><div class="bar-row"><span>Exp.1.a CNN-BiLSTM + wavelet</span><div class="bar-bg"><div class="bar exp" style="width: 70.98%"></div></div><strong>28.296600</strong></div><div class="bar-row"><span>Exp.1.a CNN-BiLSTM + patch</span><div class="bar-bg"><div class="bar exp" style="width: 78.32%"></div></div><strong>31.223300</strong></div><div class="bar-row"><span>Exp.1.b CNN-xLSTM + norm</span><div class="bar-bg"><div class="bar exp" style="width: 66.56%"></div></div><strong>26.534500</strong></div><div class="bar-row"><span>Exp.1.b CNN-xLSTM + wavelet</span><div class="bar-bg"><div class="bar exp" style="width: 68.03%"></div></div><strong>27.121100</strong></div><div class="bar-row"><span>Exp.1.b CNN-xLSTM + patch</span><div class="bar-bg"><div class="bar exp" style="width: 72.33%"></div></div><strong>28.834100</strong></div><div class="bar-row"><span>Exp.1.c CNN-BiLSTM-Transformer + norm</span><div class="bar-bg"><div class="bar exp" style="width: 94.57%"></div></div><strong>37.699800</strong></div><div class="bar-row"><span>Exp.1.c CNN-BiLSTM-Transformer + patch</span><div class="bar-bg"><div class="bar exp" style="width: 80.91%"></div></div><strong>32.255700</strong></div><div class="bar-row"><span>Exp.1.c CNN-BiLSTM-Transformer + wavelet</span><div class="bar-bg"><div class="bar exp" style="width: 100.00%"></div></div><strong>39.866100</strong></div><div class="bar-row"><span>Exp.1.d CNN-Transformer + norm</span><div class="bar-bg"><div class="bar exp" style="width: 66.54%"></div></div><strong>26.526200</strong></div><div class="bar-row"><span>Exp.1.d CNN-Transformer + patch</span><div class="bar-bg"><div class="bar exp" style="width: 74.42%"></div></div><strong>29.666800</strong></div><div class="bar-row"><span>Exp.1.d CNN-Transformer + wavelet</span><div class="bar-bg"><div class="bar exp" style="width: 69.64%"></div></div><strong>27.764600</strong></div><div class="bar-row"><span>Prophet + held_out_48h</span><div class="bar-bg"><div class="bar prophet" style="width: 4.00%"></div></div><strong>0.012084</strong></div><div class="bar-row"><span>Prophet + cross_validation</span><div class="bar-bg"><div class="bar prophet" style="width: 4.00%"></div></div><strong>0.012897</strong></div>
+      <p class="chart-note">Bar width is relative within this panel; lower MAE is better.</p>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 10px;">RMSE Comparison Across All Runs</h2>
+      <div class="bar-row"><span>Exp.1.a CNN-BiLSTM + norm</span><div class="bar-bg"><div class="bar exp" style="width: 77.60%"></div></div><strong>41.248600</strong></div><div class="bar-row"><span>Exp.1.a CNN-BiLSTM + wavelet</span><div class="bar-bg"><div class="bar exp" style="width: 73.96%"></div></div><strong>39.312600</strong></div><div class="bar-row"><span>Exp.1.a CNN-BiLSTM + patch</span><div class="bar-bg"><div class="bar exp" style="width: 80.29%"></div></div><strong>42.675000</strong></div><div class="bar-row"><span>Exp.1.b CNN-xLSTM + norm</span><div class="bar-bg"><div class="bar exp" style="width: 74.05%"></div></div><strong>39.358000</strong></div><div class="bar-row"><span>Exp.1.b CNN-xLSTM + wavelet</span><div class="bar-bg"><div class="bar exp" style="width: 73.95%"></div></div><strong>39.305300</strong></div><div class="bar-row"><span>Exp.1.b CNN-xLSTM + patch</span><div class="bar-bg"><div class="bar exp" style="width: 76.41%"></div></div><strong>40.615300</strong></div><div class="bar-row"><span>Exp.1.c CNN-BiLSTM-Transformer + norm</span><div class="bar-bg"><div class="bar exp" style="width: 95.63%"></div></div><strong>50.829400</strong></div><div class="bar-row"><span>Exp.1.c CNN-BiLSTM-Transformer + patch</span><div class="bar-bg"><div class="bar exp" style="width: 84.50%"></div></div><strong>44.912800</strong></div><div class="bar-row"><span>Exp.1.c CNN-BiLSTM-Transformer + wavelet</span><div class="bar-bg"><div class="bar exp" style="width: 100.00%"></div></div><strong>53.152100</strong></div><div class="bar-row"><span>Exp.1.d CNN-Transformer + norm</span><div class="bar-bg"><div class="bar exp" style="width: 72.03%"></div></div><strong>38.286900</strong></div><div class="bar-row"><span>Exp.1.d CNN-Transformer + patch</span><div class="bar-bg"><div class="bar exp" style="width: 77.07%"></div></div><strong>40.962900</strong></div><div class="bar-row"><span>Exp.1.d CNN-Transformer + wavelet</span><div class="bar-bg"><div class="bar exp" style="width: 73.96%"></div></div><strong>39.310700</strong></div><div class="bar-row"><span>Prophet + held_out_48h</span><div class="bar-bg"><div class="bar prophet" style="width: 4.00%"></div></div><strong>0.016177</strong></div><div class="bar-row"><span>Prophet + cross_validation</span><div class="bar-bg"><div class="bar prophet" style="width: 4.00%"></div></div><strong>0.016208</strong></div>
+      <p class="chart-note">Bar width is relative within this panel; lower RMSE is better.</p>
+    </section>
+
+    <section class="panel">
+      <div class="note">
+        Prophet metrics are computed on synthetic `prophet/mock_tariff.csv` while Exp.1 metrics come from electricity-price snapshots.
+        Use this as a repository-level status comparison, not a strict apples-to-apples benchmark.
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 10px;">Metrics Table</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Run</th>
+            <th class="num">MAE</th>
+            <th class="num">RMSE</th>
+            <th class="num">MAPE</th>
+            <th class="num">Coverage %</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Exp.1.a CNN-BiLSTM</td><td>norm</td><td class="num">29.649900</td><td class="num">41.248600</td><td class="num">4114.6316</td><td class="num">-</td></tr><tr><td>Exp.1.a CNN-BiLSTM</td><td>wavelet</td><td class="num">28.296600</td><td class="num">39.312600</td><td class="num">3141.0965</td><td class="num">-</td></tr><tr><td>Exp.1.a CNN-BiLSTM</td><td>patch</td><td class="num">31.223300</td><td class="num">42.675000</td><td class="num">4408.1151</td><td class="num">-</td></tr><tr><td>Exp.1.b CNN-xLSTM</td><td>norm</td><td class="num">26.534500</td><td class="num">39.358000</td><td class="num">4172.5943</td><td class="num">-</td></tr><tr><td>Exp.1.b CNN-xLSTM</td><td>wavelet</td><td class="num">27.121100</td><td class="num">39.305300</td><td class="num">3918.8283</td><td class="num">-</td></tr><tr><td>Exp.1.b CNN-xLSTM</td><td>patch</td><td class="num">28.834100</td><td class="num">40.615300</td><td class="num">4161.9200</td><td class="num">-</td></tr><tr><td>Exp.1.c CNN-BiLSTM-Transformer</td><td>norm</td><td class="num">37.699800</td><td class="num">50.829400</td><td class="num">4801.9512</td><td class="num">-</td></tr><tr><td>Exp.1.c CNN-BiLSTM-Transformer</td><td>patch</td><td class="num">32.255700</td><td class="num">44.912800</td><td class="num">4724.6062</td><td class="num">-</td></tr><tr><td>Exp.1.c CNN-BiLSTM-Transformer</td><td>wavelet</td><td class="num">39.866100</td><td class="num">53.152100</td><td class="num">4896.0546</td><td class="num">-</td></tr><tr><td>Exp.1.d CNN-Transformer</td><td>norm</td><td class="num">26.526200</td><td class="num">38.286900</td><td class="num">3093.2507</td><td class="num">-</td></tr><tr><td>Exp.1.d CNN-Transformer</td><td>patch</td><td class="num">29.666800</td><td class="num">40.962900</td><td class="num">3596.5461</td><td class="num">-</td></tr><tr><td>Exp.1.d CNN-Transformer</td><td>wavelet</td><td class="num">27.764600</td><td class="num">39.310700</td><td class="num">3560.1780</td><td class="num">-</td></tr><tr><td>Prophet</td><td>held_out_48h</td><td class="num">0.012084</td><td class="num">0.016177</td><td class="num">15.1307</td><td class="num">79.17</td></tr><tr><td>Prophet</td><td>cross_validation</td><td class="num">0.012897</td><td class="num">0.016208</td><td class="num">20.3367</td><td class="num">79.96</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>

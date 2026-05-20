@@ -39,13 +39,20 @@ def compute_metrics(actual: pd.Series, predicted: pd.Series,
 
 
 def run_benchmark(df: pd.DataFrame) -> dict:
-    train = df.iloc[:-FORECAST_HOURS]
-    test = df.iloc[-FORECAST_HOURS:]
+    df = df.sort_values("ds").reset_index(drop=True)
+
+    # Detect frequency from data
+    freq = pd.infer_freq(df["ds"].head(20)) or "15min"
+    periods_per_hour = pd.tseries.frequencies.to_offset("1h") / pd.tseries.frequencies.to_offset(freq)
+    forecast_periods = int(FORECAST_HOURS * periods_per_hour)
+
+    train = df.iloc[:-forecast_periods]
+    test = df.iloc[-forecast_periods:]
 
     model = build_model()
     model.fit(train)
 
-    future = model.make_future_dataframe(periods=FORECAST_HOURS, freq="h")
+    future = model.make_future_dataframe(periods=forecast_periods, freq=freq)
     forecast = model.predict(future)
     forecast_test = forecast.set_index("ds").loc[test["ds"].values]
 
@@ -56,8 +63,12 @@ def run_benchmark(df: pd.DataFrame) -> dict:
         forecast_test["yhat_upper"].values,
     )
 
+    total_days = (df["ds"].max() - df["ds"].min()).days
+    initial_days = max(int(total_days * 0.6), FORECAST_HOURS // 24 + 1)
+    period_days = max(int(total_days * 0.1), 1)
+
     print("Running cross-validation (this may take a minute)...")
-    cv = cross_validation(model, initial="180 days", period="30 days", horizon="48 hours")
+    cv = cross_validation(model, initial=f"{initial_days} days", period=f"{period_days} days", horizon=f"{FORECAST_HOURS} hours")
     pm = performance_metrics(cv)
     cv_metrics = {
         "MAE": round(float(pm["mae"].mean()), 6),
@@ -118,17 +129,23 @@ def print_summary(results: dict):
 
 
 if __name__ == "__main__":
-    csv_path = "prophet/mock_tariff.csv"
-    if len(sys.argv) > 1:
-        csv_path = sys.argv[1]
+    if "--api" in sys.argv:
+        from model import load_data_from_api
+        print("Loading data from API...")
+        df = load_data_from_api()
+        print(f"Loaded {len(df)} rows from API")
+    else:
+        csv_path = "prophet/mock_tariff.csv"
+        if len(sys.argv) > 1 and not sys.argv[1].startswith("--"):
+            csv_path = sys.argv[1]
 
-    if not os.path.exists(csv_path):
-        print(f"No data at {csv_path}. Generate mock data first:")
-        print("  python prophet/mock_data.py")
-        sys.exit(1)
+        if not os.path.exists(csv_path):
+            print(f"No data at {csv_path}. Generate mock data first:")
+            print("  python prophet/mock_data.py")
+            sys.exit(1)
 
-    df = load_data(csv_path)
-    print(f"Loaded {len(df)} rows from {csv_path}")
+        df = load_data(csv_path)
+        print(f"Loaded {len(df)} rows from {csv_path}")
 
     results = run_benchmark(df)
     print_summary(results)
