@@ -21,14 +21,12 @@ class LoadedTimeSeriesData:
 
 
 def load_time_series_data(config: DataConfig) -> LoadedTimeSeriesData:
-    """Load a tabular time-series CSV (local path or hf:// URL) and resolve the schema."""
-    if config.path.startswith("hf://") or config.path.startswith("http"):
-        frame = pd.read_csv(config.path)
-    else:
-        data_path = Path(config.path)
-        if not data_path.exists():
-            raise FileNotFoundError(f"Dataset not found: {data_path}")
-        frame = pd.read_csv(data_path)
+    """Load a tabular time-series CSV and resolve the schema."""
+    data_path = Path(config.path)
+    if not data_path.exists():
+        raise FileNotFoundError(f"Dataset not found: {data_path}")
+
+    frame = pd.read_csv(data_path)
     if config.timestamp_col not in frame.columns:
         raise ValueError(
             f"Timestamp column '{config.timestamp_col}' not present in dataset. "

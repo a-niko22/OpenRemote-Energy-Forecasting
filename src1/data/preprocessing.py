@@ -129,7 +129,7 @@ def apply_preprocessing(
 
     for split_name, split_data in splits.items():
         inputs = split_data.inputs
-        if preprocess_name in {"norm", "exp2_standard", "exp2_fft", "exp2_kernel"}:
+        if preprocess_name == "norm":
             processed_inputs = inputs.copy()
             feature_names = input_feature_names.copy()
         elif preprocess_name == "wavelet":

@@ -1,4 +1,4 @@
-"""Shared layers for all models."""
+"""Shared layers for the Experiment 1 models."""
 
 from __future__ import annotations
 
@@ -6,77 +6,7 @@ import math
 from typing import Iterable
 
 import torch
-import torch.nn.functional as F
 from torch import nn
-
-
-def make_causal_mask(seq_len: int, device: torch.device) -> torch.Tensor:
-    """Upper-triangular mask (True = ignore) for causal self-attention."""
-    return torch.triu(torch.ones(seq_len, seq_len, device=device, dtype=torch.bool), diagonal=1)
-
-
-class FFTBlock(nn.Module):
-    """rfft → keep top-k modes → irfft along time axis (FNO-lite feature filter)."""
-
-    def __init__(self, input_dim: int, fft_modes: int):
-        super().__init__()
-        self.fft_modes = fft_modes
-        self.scale = nn.Parameter(torch.ones(1, 1, input_dim))
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x: (B, L, D)
-        xf = torch.fft.rfft(x, dim=1)
-        modes = min(self.fft_modes, xf.shape[1])
-        out = torch.zeros_like(xf)
-        out[:, :modes, :] = xf[:, :modes, :]
-        return torch.fft.irfft(out, n=x.shape[1], dim=1) * self.scale
-
-
-class KernelAttention(nn.Module):
-    """Performer-style FAVOR+ linear attention (single multi-head block)."""
-
-    def __init__(self, d_model: int, nhead: int, feature_dim: int, dropout: float = 0.0):
-        super().__init__()
-        assert d_model % nhead == 0
-        self.nhead = nhead
-        self.head_dim = d_model // nhead
-        self.feature_dim = feature_dim
-
-        self.q_proj = nn.Linear(d_model, d_model)
-        self.k_proj = nn.Linear(d_model, d_model)
-        self.v_proj = nn.Linear(d_model, d_model)
-        self.out_proj = nn.Linear(d_model, d_model)
-        self.dropout = nn.Dropout(dropout)
-
-        # Random orthogonal features (frozen)
-        omega = torch.randn(feature_dim, self.head_dim)
-        nn.init.orthogonal_(omega)
-        self.register_buffer("omega", omega)
-
-    def _feature_map(self, x: torch.Tensor) -> torch.Tensor:
-        # x: (B, H, L, head_dim) → (B, H, L, feature_dim)
-        xo = x @ self.omega.T / math.sqrt(self.head_dim)
-        return F.softmax(xo, dim=-1) + 1e-6
-
-    def forward(self, x: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
-        B, L, _ = x.shape
-        H, D = self.nhead, self.head_dim
-
-        def split_heads(t: torch.Tensor) -> torch.Tensor:
-            return t.view(B, L, H, D).transpose(1, 2)  # (B, H, L, D)
-
-        q = self._feature_map(split_heads(self.q_proj(x)))
-        k = self._feature_map(split_heads(self.k_proj(x)))
-        v = split_heads(self.v_proj(x))
-
-        # Linear attention: O(L·F·D) instead of O(L²·D)
-        kv = torch.einsum("bhlf,bhld->bhfd", k, v)         # (B, H, F, D)
-        attn = torch.einsum("bhlf,bhfd->bhld", q, kv)       # (B, H, L, D)
-        denom = torch.einsum("bhlf,bhf->bhl", q, k.sum(dim=2)).unsqueeze(-1).clamp(min=1e-6)
-        attn = attn / denom
-
-        out = attn.transpose(1, 2).contiguous().view(B, L, H * D)
-        return self.dropout(self.out_proj(out))
 
 
 def build_activation(name: str) -> nn.Module:
@@ -89,24 +19,6 @@ def build_activation(name: str) -> nn.Module:
     if name == "elu":
         return nn.ELU()
     raise ValueError(f"Unsupported activation: {name}")
-
-
-class SinusoidalPositionalEncoding(nn.Module):
-    """Fixed sinusoidal positional encoding added to token embeddings."""
-
-    def __init__(self, d_model: int, max_len: int = 5000, dropout: float = 0.0):
-        super().__init__()
-        self.dropout = nn.Dropout(dropout)
-        position = torch.arange(max_len).unsqueeze(1).float()
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-        pe = torch.zeros(1, max_len, d_model)
-        pe[0, :, 0::2] = torch.sin(position * div_term)
-        pe[0, :, 1::2] = torch.cos(position * div_term)
-        self.register_buffer("pe", pe)
-
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        inputs = inputs + self.pe[:, : inputs.size(1)]
-        return self.dropout(inputs)
 
 
 class PatchInputAdapter(nn.Module):
