@@ -17,10 +17,20 @@ from .exp1_cd_models import (
     CNNBiLSTMTransformerPipelineModel,
     CNNTransformerPipelineModel,
 )
+from .exp2_models import (
+    DecoderOnlyTransformerPipelineModel,
+    EncoderDecoderTransformerPipelineModel,
+    KernelTransformerPipelineModel,
+    ITransformerPipelineModel,
+)
 
 __all__ = [
     "CNNBiLSTMPipelineModel",
     "CNNXLSTMPipelineModel",
     "CNNBiLSTMTransformerPipelineModel",
     "CNNTransformerPipelineModel",
+    "DecoderOnlyTransformerPipelineModel",
+    "EncoderDecoderTransformerPipelineModel",
+    "KernelTransformerPipelineModel",
+    "ITransformerPipelineModel",
 ]
