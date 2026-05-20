@@ -102,6 +102,9 @@ class TransformerConfig:
     pooling: str
     head_hidden_size: int
     max_len: int = 10000
+    num_decoder_layers: int | None = None
+    feature_dim: int | None = None
+    fft_modes: int | None = None
 
 
 @dataclass
