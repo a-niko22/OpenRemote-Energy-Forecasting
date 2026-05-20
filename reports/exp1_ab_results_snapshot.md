@@ -7,7 +7,7 @@ Included scope:
 - `Exp.1.a CNN-BiLSTM`
 - `Exp.1.b CNN-xLSTM`
 
-Excluded scope:
+Excluded from this historical Exp.1.a/b results batch:
 
 - `Exp.1.c CNN-BiLSTM-Transformer`
 - `Exp.1.d CNN-Transformer`
@@ -41,3 +41,5 @@ Lower is better for `MAE` and `RMSE`.
 - `MAPE` is large because the target includes values close to zero, which makes percentage errors unstable.
 - For comparison, `MAE` and `RMSE` are the better metrics to trust.
 - Full generated run artifacts still live under `outputs/`, but those files are intentionally gitignored.
+- Exp.1.c/d are not part of this snapshot, but they now have shared
+  `ml_pipeline` wrappers in `ml_pipeline/models/exp1_cd_models.py`.

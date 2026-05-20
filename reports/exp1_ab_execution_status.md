@@ -13,7 +13,7 @@ Included runs:
 5. `Exp.1.b CNN-xLSTM + wavelet`
 6. `Exp.1.b CNN-xLSTM + patch`
 
-Excluded by design:
+Excluded from this historical Exp.1.a/b execution batch:
 
 1. `Exp.1.c CNN-BiLSTM-Transformer`
 2. `Exp.1.d CNN-Transformer`
@@ -103,6 +103,8 @@ Combined outputs:
 - One earlier GPU batch timed out while `exp1b_cnn_xlstm + norm` was still writing final artifacts. That partial directory was archived and the run was repeated successfully.
 - The `CNN-xLSTM` implementation is the documented in-repo approximation described in the README and implementation report, not the official external xLSTM package.
 - The MAPE values are very large because the target series includes values close to zero, which makes percentage errors unstable. MAE and RMSE are the more reliable comparison metrics here.
+- Exp.1.c/d are not part of these April 21, 2026 results, but they now have
+  shared `ml_pipeline` wrappers in `ml_pipeline/models/exp1_cd_models.py`.
 
 ## Recommended Files To Inspect First
 

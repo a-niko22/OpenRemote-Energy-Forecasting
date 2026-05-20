@@ -162,6 +162,68 @@ class ConvTemporalEncoder(nn.Module):
         return encoded.transpose(1, 2)
 
 
+class SinusoidalPositionalEncoding(nn.Module):
+    """Sinusoidal positional encoding for batch-first sequence tensors."""
+
+    def __init__(self, d_model: int, max_len: int = 10000):
+        super().__init__()
+        position = torch.arange(max_len, dtype=torch.float32).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2, dtype=torch.float32) * (-math.log(10000.0) / d_model))
+
+        encoding = torch.zeros(max_len, d_model, dtype=torch.float32)
+        encoding[:, 0::2] = torch.sin(position * div_term)
+        encoding[:, 1::2] = torch.cos(position * div_term[: encoding[:, 1::2].shape[1]])
+        self.register_buffer("encoding", encoding.unsqueeze(0), persistent=False)
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        sequence_length = inputs.size(1)
+        if sequence_length > self.encoding.size(1):
+            raise ValueError(
+                f"Sequence length {sequence_length} exceeds positional encoding max length {self.encoding.size(1)}."
+            )
+        return inputs + self.encoding[:, :sequence_length, :].to(dtype=inputs.dtype, device=inputs.device)
+
+
+class OptionalProjection(nn.Module):
+    """Project sequence features only when the source and target dims differ."""
+
+    def __init__(self, input_dim: int, output_dim: int):
+        super().__init__()
+        self.projection = nn.Identity() if input_dim == output_dim else nn.Linear(input_dim, output_dim)
+        self.output_dim = output_dim
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        return self.projection(inputs)
+
+
+class TransformerEncoderBlock(nn.Module):
+    """Batch-first Transformer encoder wrapper."""
+
+    def __init__(
+        self,
+        d_model: int,
+        nhead: int,
+        num_layers: int,
+        dim_feedforward: int,
+        dropout: float,
+        activation: str,
+    ):
+        super().__init__()
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model,
+            nhead=nhead,
+            dim_feedforward=dim_feedforward,
+            dropout=dropout,
+            activation=activation,
+            batch_first=True,
+        )
+        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        self.output_dim = d_model
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        return self.encoder(inputs)
+
+
 class XLSTMApproxCell(nn.Module):
     """xLSTM-inspired recurrent cell with stabilized exponential-style gates."""
 

@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99e (TeX Live 2026/Arch Linux)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: plain.bst
+Database file #1: citations.bib
+Warning--empty journal in Taylor2017
+You've used 21 entries,
+            2118 wiz_defined-function locations,
+            638 strings with 8408 characters,
+and the built_in function-call counts, 7796 in all, are:
+= -- 704
+> -- 498
+< -- 1
++ -- 203
+- -- 174
+* -- 648
+:= -- 1346
+add.period$ -- 60
+call.type$ -- 21
+change.case$ -- 150
+chr.to.int$ -- 0
+cite$ -- 22
+duplicate$ -- 230
+empty$ -- 531
+format.name$ -- 174
+if$ -- 1553
+int.to.chr$ -- 0
+int.to.str$ -- 21
+missing$ -- 18
+newline$ -- 105
+num.names$ -- 42
+pop$ -- 138
+preamble$ -- 1
+purify$ -- 129
+quote$ -- 0
+skip$ -- 173
+stack$ -- 0
+substring$ -- 432
+swap$ -- 32
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 84
+warning$ -- 1
+while$ -- 59
+width$ -- 23
+write$ -- 222
+(There was 1 warning)
