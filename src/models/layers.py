@@ -91,24 +91,6 @@ def build_activation(name: str) -> nn.Module:
     raise ValueError(f"Unsupported activation: {name}")
 
 
-class SinusoidalPositionalEncoding(nn.Module):
-    """Fixed sinusoidal positional encoding added to token embeddings."""
-
-    def __init__(self, d_model: int, max_len: int = 5000, dropout: float = 0.0):
-        super().__init__()
-        self.dropout = nn.Dropout(dropout)
-        position = torch.arange(max_len).unsqueeze(1).float()
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-        pe = torch.zeros(1, max_len, d_model)
-        pe[0, :, 0::2] = torch.sin(position * div_term)
-        pe[0, :, 1::2] = torch.cos(position * div_term)
-        self.register_buffer("pe", pe)
-
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        inputs = inputs + self.pe[:, : inputs.size(1)]
-        return self.dropout(inputs)
-
-
 class PatchInputAdapter(nn.Module):
     """Optional projection used when patch tokens are fed into the model."""
 
@@ -167,6 +149,7 @@ class SinusoidalPositionalEncoding(nn.Module):
 
     def __init__(self, d_model: int, max_len: int = 10000, dropout: float = 0.0):
         super().__init__()
+        self._dropout = nn.Dropout(dropout)
         position = torch.arange(max_len, dtype=torch.float32).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, d_model, 2, dtype=torch.float32) * (-math.log(10000.0) / d_model))
 
