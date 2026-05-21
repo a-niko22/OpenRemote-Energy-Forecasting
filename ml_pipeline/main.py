@@ -7,8 +7,8 @@ import argparse
 import random
 import numpy as np
 
-# IMPORTANT: import data stack before torch/model adapters
-from data.loader import load_dataset  
+# VERY IMPORTANT PLS DO NOT TOUCH IMPORTS: import data stack before torch/model adapters, otherwise everything hard crashes and it becomes impossible to debug
+from data.loader import load_dataset
 
 from pipeline.experiment import Experiment
 from pipeline.experiment_runner import ExperimentRunner
@@ -21,10 +21,17 @@ from test_models_and_preprocessors.zero_model import ZeroModel
 from preprocessors.standard_scaler_preprocessor import StandardScalerPreprocessor
 from preprocessors.wavelet_preprocessor import WaveletPreprocessor
 from preprocessors.patch_tst_preprocessor import PatchTSTPreprocessor
+from preprocessors.kernel_feature_preprocessor import KernelFeaturePreprocessor
 
 # Torch gets imported through these, so keep them AFTER data.loader
 from models.exp1_ab_models import CNNBiLSTMPipelineModel, CNNXLSTMPipelineModel
 from models.exp1_cd_models import CNNBiLSTMTransformerPipelineModel, CNNTransformerPipelineModel
+from models.exp2_models import (
+    DecoderOnlyTransformerPipelineModel,
+    EncoderDecoderTransformerPipelineModel,
+    KernelTransformerPipelineModel,
+    ITransformerPipelineModel,
+)
 
 
 def run_experiments(experiments,
@@ -65,11 +72,6 @@ def print_results(results, input_len, horizon):
               f"{m['peak_mae_top10']:>11.3f}")
 
 
-# -- factories for the four real Exp.1 models --------------------------------
-# The `input_kind` parameter MUST be "patch" when paired with PatchTSTPreprocessor
-# so the model's PatchInputAdapter projects tokens correctly. For norm and
-# wavelet preprocessors it stays "sequence".
-
 def _make_model(model_cls, *, seed: int, input_kind: str):
     return model_cls(seed=seed, input_kind=input_kind)
 
@@ -101,9 +103,49 @@ def _build_exp1_block(label: str, preprocessor_factory, *,
     ]
 
 
+def _build_exp2_experiments(args):
+    """Build the five proposal-aligned Exp.2 experiments."""
+    return [
+        Experiment(
+            "Exp2.a Decoder-Only Tx + Norm",
+            StandardScalerPreprocessor(),
+            _make_model(DecoderOnlyTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        ),
+        Experiment(
+            "Exp2.b Decoder-Only Tx + Wavelet",
+            WaveletPreprocessor(
+                wavelet_name=args.wavelet_name,
+                level=args.wavelet_level,
+                mode=args.wavelet_mode,
+            ),
+            _make_model(DecoderOnlyTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        ),
+        Experiment(
+            "Exp2.c Encoder-Decoder Tx + Norm",
+            StandardScalerPreprocessor(),
+            _make_model(EncoderDecoderTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        ),
+        Experiment(
+            "Exp2.d Kernel Tx + Kernel",
+            KernelFeaturePreprocessor(
+                n_components=args.kernel_components,
+                gamma=args.kernel_gamma,
+                random_state=args.kernel_random_state,
+            ),
+            _make_model(KernelTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        ),
+        Experiment(
+            "Exp2.e iTransformer + Norm",
+            StandardScalerPreprocessor(),
+            _make_model(ITransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        ),
+    ]
+
+
 def demo():
     print("[boot] entering demo()", flush=True)
-    parser = argparse.ArgumentParser(description="Run Exp.1 experiments.")
+
+    parser = argparse.ArgumentParser(description="Run Exp.1 and Exp.2 experiments.")
     parser.add_argument("--subset", default="Without_Gas")
     parser.add_argument("--input-len", type=int, default=168)
     parser.add_argument("--horizon", type=int, default=48)
@@ -111,41 +153,38 @@ def demo():
     parser.add_argument("--val-ratio", type=float, default=0.15)
     parser.add_argument("--seed", type=int, default=42)
 
-    # Per-preprocessing toggles
-    parser.add_argument("--include-exp1-norm", action="store_true",
-                        help="Add the 4 Exp.1 runs with StandardScalerPreprocessor.")
-    parser.add_argument("--include-exp1-wavelet", action="store_true",
-                        help="Add the 4 Exp.1 runs with WaveletPreprocessor.")
-    parser.add_argument("--include-exp1-patch", action="store_true",
-                        help="Add the 4 Exp.1 runs with PatchTSTPreprocessor.")
-    parser.add_argument("--include-exp1", action="store_true",
-                        help="Shorthand for --include-exp1-norm "
-                             "--include-exp1-wavelet --include-exp1-patch.")
+    parser.add_argument("--include-exp1-norm", action="store_true")
+    parser.add_argument("--include-exp1-wavelet", action="store_true")
+    parser.add_argument("--include-exp1-patch", action="store_true")
+    parser.add_argument("--include-exp1", action="store_true")
 
-    # Training overrides forwarded to model.fit() via fit_kwargs.
-    # Defaults match configs/base.yaml so a plain --include-exp1 run reproduces
-    # the training conditions of the published reports.
+    parser.add_argument("--include-exp2", action="store_true",
+                        help="Add the 5 proposal-aligned Exp.2 runs.")
+
     parser.add_argument("--epochs", type=int, default=25)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--lr", type=float, default=1e-3)
 
-    # Wavelet / patch knobs
     parser.add_argument("--wavelet-name", default="db1")
     parser.add_argument("--wavelet-level", type=int, default=1)
     parser.add_argument("--wavelet-mode", default="concat", choices=["concat", "replace"])
     parser.add_argument("--patch-len", type=int, default=24)
     parser.add_argument("--patch-stride", type=int, default=12)
 
+    parser.add_argument("--kernel-components", type=int, default=32)
+    parser.add_argument("--kernel-gamma", type=float, default=1.0)
+    parser.add_argument("--kernel-random-state", type=int, default=42)
+
     args = parser.parse_args()
 
-    include_norm    = args.include_exp1_norm    or args.include_exp1
+    include_norm = args.include_exp1_norm or args.include_exp1
     include_wavelet = args.include_exp1_wavelet or args.include_exp1
-    include_patch   = args.include_exp1_patch   or args.include_exp1
+    include_patch = args.include_exp1_patch or args.include_exp1
 
     experiments = [
-        Experiment("Mean baseline",  IdentityPreprocessor(), MeanModel()),
-        Experiment("Zero baseline",  IdentityPreprocessor(), ZeroModel()),
-        Experiment("MinMax + Mean",  MinMaxPreprocessor(),   MeanModel()),
+        Experiment("Mean baseline", IdentityPreprocessor(), MeanModel()),
+        Experiment("Zero baseline", IdentityPreprocessor(), ZeroModel()),
+        Experiment("MinMax + Mean", MinMaxPreprocessor(), MeanModel()),
     ]
 
     if include_norm:
@@ -178,6 +217,9 @@ def demo():
             input_kind="patch",
             seed=args.seed,
         ))
+
+    if args.include_exp2:
+        experiments.extend(_build_exp2_experiments(args))
 
     results = run_experiments(
         experiments,
