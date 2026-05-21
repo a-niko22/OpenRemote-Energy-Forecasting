@@ -165,7 +165,7 @@ class ConvTemporalEncoder(nn.Module):
 class SinusoidalPositionalEncoding(nn.Module):
     """Sinusoidal positional encoding for batch-first sequence tensors."""
 
-    def __init__(self, d_model: int, max_len: int = 10000):
+    def __init__(self, d_model: int, max_len: int = 10000, dropout: float = 0.0):
         super().__init__()
         position = torch.arange(max_len, dtype=torch.float32).unsqueeze(1)
         div_term = torch.exp(torch.arange(0, d_model, 2, dtype=torch.float32) * (-math.log(10000.0) / d_model))
@@ -174,6 +174,7 @@ class SinusoidalPositionalEncoding(nn.Module):
         encoding[:, 0::2] = torch.sin(position * div_term)
         encoding[:, 1::2] = torch.cos(position * div_term[: encoding[:, 1::2].shape[1]])
         self.register_buffer("encoding", encoding.unsqueeze(0), persistent=False)
+        self.dropout = nn.Dropout(dropout)
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         sequence_length = inputs.size(1)
@@ -181,7 +182,8 @@ class SinusoidalPositionalEncoding(nn.Module):
             raise ValueError(
                 f"Sequence length {sequence_length} exceeds positional encoding max length {self.encoding.size(1)}."
             )
-        return inputs + self.encoding[:, :sequence_length, :].to(dtype=inputs.dtype, device=inputs.device)
+        encoded = inputs + self.encoding[:, :sequence_length, :].to(dtype=inputs.dtype, device=inputs.device)
+        return self.dropout(encoded)
 
 
 class OptionalProjection(nn.Module):

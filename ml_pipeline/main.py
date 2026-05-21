@@ -55,6 +55,7 @@ from models.exp1_cd_models import (
     CNNBiLSTMTransformerPipelineModel,
     CNNTransformerPipelineModel,
 )
+from models.prophet_model import ProphetPipelineModel
 
 
 
@@ -154,6 +155,11 @@ def demo():
         action="store_true",
         help="Also run the Exp.1.c/d ml_pipeline wrapper examples.",
     )
+    parser.add_argument(
+        "--include-prophet",
+        action="store_true",
+        help="Also run Prophet through the shared ml_pipeline BaseModel interface.",
+    )
     args = parser.parse_args()
 
     # =========================================================================
@@ -207,6 +213,15 @@ def demo():
                 CNNTransformerPipelineModel(seed=args.seed),
             ),
         ])
+
+    if args.include_prophet:
+        experiments.append(
+            Experiment(
+                "Prophet baseline",
+                IdentityPreprocessor(),
+                ProphetPipelineModel(target_feature_index=0, freq="h"),
+            )
+        )
 
     results = run_experiments(
         experiments,
