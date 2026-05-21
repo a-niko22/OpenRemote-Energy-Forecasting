@@ -1,56 +1,30 @@
-# main.py
-# =============================================================================
-# Entry point for the pipeline.
-#
-# This version wires up the Exp.1 and Exp.2 model families through Luis's pipeline:
-#   Exp.1: 4 models (CNN-BiLSTM, CNN-xLSTM, CNN-BiLSTM-Transformer,
-#                   CNN-Transformer)
-#   Exp.2: 5 models (Decoder-Only Transformer, FFT Decoder Transformer,
-#                   Encoder-Decoder Transformer, Kernel Transformer,
-#                   iTransformer)
-#   x 3 preprocessing methods (Standard scaler, Wavelet, PatchTST)
-#
-# CLI usage:
-#   python main.py                          # baselines only
-#   python main.py --include-exp1           # add all 12 Exp.1 runs
-#   python main.py --include-exp2           # add all 15 Exp.2 runs
-#   python main.py --include-exp1 --include-exp2 --epochs 25 --batch-size 64 --lr 1e-3
-# =============================================================================
+print("[ABSOLUTE TOP OF MAIN]", flush=True)
+
+import os, sys
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
 import argparse
 import random
 import numpy as np
 
+# IMPORTANT: import data stack before torch/model adapters
+from data.loader import load_dataset  
+
 from pipeline.experiment import Experiment
 from pipeline.experiment_runner import ExperimentRunner
 
-# Baselines
 from test_models_and_preprocessors.identity_preprocessor import IdentityPreprocessor
 from test_models_and_preprocessors.minmax_preprocessor import MinMaxPreprocessor
 from test_models_and_preprocessors.mean_model import MeanModel
 from test_models_and_preprocessors.zero_model import ZeroModel
 
-# Real preprocessors
 from preprocessors.standard_scaler_preprocessor import StandardScalerPreprocessor
 from preprocessors.wavelet_preprocessor import WaveletPreprocessor
 from preprocessors.patch_tst_preprocessor import PatchTSTPreprocessor
 
-# Exp.1 model adapters
-from models.exp1_ab_models import (
-    CNNBiLSTMPipelineModel,
-    CNNXLSTMPipelineModel,
-)
-from models.exp1_cd_models import (
-    CNNBiLSTMTransformerPipelineModel,
-    CNNTransformerPipelineModel,
-)
-from models.exp2_models import (
-    DecoderOnlyTransformerPipelineModel,
-    EncoderDecoderTransformerPipelineModel,
-    FFTDecoderTransformerPipelineModel,
-    ITransformerPipelineModel,
-    KernelTransformerPipelineModel,
-)
+# Torch gets imported through these, so keep them AFTER data.loader
+from models.exp1_ab_models import CNNBiLSTMPipelineModel, CNNXLSTMPipelineModel
+from models.exp1_cd_models import CNNBiLSTMTransformerPipelineModel, CNNTransformerPipelineModel
 
 
 def run_experiments(experiments,
@@ -127,39 +101,8 @@ def _build_exp1_block(label: str, preprocessor_factory, *,
     ]
 
 
-def _build_exp2_block(label: str, preprocessor_factory, *,
-                      input_kind: str, seed: int):
-    """Build the five Exp.2 experiments for one preprocessing strategy."""
-    return [
-        Experiment(
-            f"Exp2.a Decoder-Only Tx + {label}",
-            preprocessor_factory(),
-            _make_model(DecoderOnlyTransformerPipelineModel, seed=seed, input_kind=input_kind),
-        ),
-        Experiment(
-            f"Exp2.b FFT Decoder Tx + {label}",
-            preprocessor_factory(),
-            _make_model(FFTDecoderTransformerPipelineModel, seed=seed, input_kind=input_kind),
-        ),
-        Experiment(
-            f"Exp2.c Encoder-Decoder Tx + {label}",
-            preprocessor_factory(),
-            _make_model(EncoderDecoderTransformerPipelineModel, seed=seed, input_kind=input_kind),
-        ),
-        Experiment(
-            f"Exp2.d Kernel Tx + {label}",
-            preprocessor_factory(),
-            _make_model(KernelTransformerPipelineModel, seed=seed, input_kind=input_kind),
-        ),
-        Experiment(
-            f"Exp2.e iTransformer + {label}",
-            preprocessor_factory(),
-            _make_model(ITransformerPipelineModel, seed=seed, input_kind=input_kind),
-        ),
-    ]
-
-
 def demo():
+    print("[boot] entering demo()", flush=True)
     parser = argparse.ArgumentParser(description="Run Exp.1 experiments.")
     parser.add_argument("--subset", default="Without_Gas")
     parser.add_argument("--input-len", type=int, default=168)
@@ -178,15 +121,6 @@ def demo():
     parser.add_argument("--include-exp1", action="store_true",
                         help="Shorthand for --include-exp1-norm "
                              "--include-exp1-wavelet --include-exp1-patch.")
-    parser.add_argument("--include-exp2-norm", action="store_true",
-                        help="Add the 5 Exp.2 runs with StandardScalerPreprocessor.")
-    parser.add_argument("--include-exp2-wavelet", action="store_true",
-                        help="Add the 5 Exp.2 runs with WaveletPreprocessor.")
-    parser.add_argument("--include-exp2-patch", action="store_true",
-                        help="Add the 5 Exp.2 runs with PatchTSTPreprocessor.")
-    parser.add_argument("--include-exp2", action="store_true",
-                        help="Shorthand for --include-exp2-norm "
-                             "--include-exp2-wavelet --include-exp2-patch.")
 
     # Training overrides forwarded to model.fit() via fit_kwargs.
     # Defaults match configs/base.yaml so a plain --include-exp1 run reproduces
@@ -204,12 +138,9 @@ def demo():
 
     args = parser.parse_args()
 
-    include_exp1_norm    = args.include_exp1_norm    or args.include_exp1
-    include_exp1_wavelet = args.include_exp1_wavelet or args.include_exp1
-    include_exp1_patch   = args.include_exp1_patch   or args.include_exp1
-    include_exp2_norm    = args.include_exp2_norm    or args.include_exp2
-    include_exp2_wavelet = args.include_exp2_wavelet or args.include_exp2
-    include_exp2_patch   = args.include_exp2_patch   or args.include_exp2
+    include_norm    = args.include_exp1_norm    or args.include_exp1
+    include_wavelet = args.include_exp1_wavelet or args.include_exp1
+    include_patch   = args.include_exp1_patch   or args.include_exp1
 
     experiments = [
         Experiment("Mean baseline",  IdentityPreprocessor(), MeanModel()),
@@ -217,7 +148,7 @@ def demo():
         Experiment("MinMax + Mean",  MinMaxPreprocessor(),   MeanModel()),
     ]
 
-    if include_exp1_norm:
+    if include_norm:
         experiments.extend(_build_exp1_block(
             "Norm",
             preprocessor_factory=lambda: StandardScalerPreprocessor(),
@@ -225,7 +156,7 @@ def demo():
             seed=args.seed,
         ))
 
-    if include_exp1_wavelet:
+    if include_wavelet:
         experiments.extend(_build_exp1_block(
             "Wavelet",
             preprocessor_factory=lambda: WaveletPreprocessor(
@@ -237,39 +168,8 @@ def demo():
             seed=args.seed,
         ))
 
-    if include_exp1_patch:
+    if include_patch:
         experiments.extend(_build_exp1_block(
-            "Patch",
-            preprocessor_factory=lambda: PatchTSTPreprocessor(
-                patch_len=args.patch_len,
-                patch_stride=args.patch_stride,
-            ),
-            input_kind="patch",
-            seed=args.seed,
-        ))
-
-    if include_exp2_norm:
-        experiments.extend(_build_exp2_block(
-            "Norm",
-            preprocessor_factory=lambda: StandardScalerPreprocessor(),
-            input_kind="sequence",
-            seed=args.seed,
-        ))
-
-    if include_exp2_wavelet:
-        experiments.extend(_build_exp2_block(
-            "Wavelet",
-            preprocessor_factory=lambda: WaveletPreprocessor(
-                wavelet_name=args.wavelet_name,
-                level=args.wavelet_level,
-                mode=args.wavelet_mode,
-            ),
-            input_kind="sequence",
-            seed=args.seed,
-        ))
-
-    if include_exp2_patch:
-        experiments.extend(_build_exp2_block(
             "Patch",
             preprocessor_factory=lambda: PatchTSTPreprocessor(
                 patch_len=args.patch_len,
