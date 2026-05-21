@@ -65,6 +65,14 @@ Thumbs.db
 # Local logs
 *.log
 
+# Validation-only benchmark artifacts
+benchmarks/all_models_mock_benchmark.csv
+benchmarks/all_models_mock_benchmark.json
+benchmarks/mock_data/
+reports/all_models_mock_benchmark.md
+reports/all_models_mock_benchmark_dashboard.html
+reports/assets/all_models_mock_benchmark_comparison.svg
+
 .tmp/
 .pip-cache/
 .vendor/
