@@ -1,5 +1,6 @@
 {
   "model": "prophet",
+<<<<<<< HEAD
   "timestamp": "2026-05-21T00:27:46.387084",
   "data_rows": 12714,
   "forecast_horizon_hours": 48,
@@ -14,6 +15,22 @@
     "RMSE": 0.049589,
     "MAPE": 50.7072,
     "coverage_pct": 79.3
+=======
+  "timestamp": "2026-05-20T23:45:50.309444",
+  "data_rows": 8760,
+  "forecast_horizon_hours": 48,
+  "held_out_test": {
+    "MAE": 0.012548,
+    "RMSE": 0.015649,
+    "MAPE": 14.7629,
+    "coverage_pct": 83.33
+  },
+  "cross_validation": {
+    "MAE": 0.013305,
+    "RMSE": 0.016853,
+    "MAPE": 17.0335,
+    "coverage_pct": 76.0
+>>>>>>> e42f3d9f140394fe3da4a1855c5b0a33ea62e599
   },
   "prophet_config": {
     "yearly_seasonality": true,
