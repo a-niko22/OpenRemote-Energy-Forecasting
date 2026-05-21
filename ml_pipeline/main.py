@@ -1,14 +1,17 @@
-print("[ABSOLUTE TOP OF MAIN]", flush=True)
-
 import os, sys
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
 import argparse
 import random
 import numpy as np
+from pathlib import Path
 
-# VERY IMPORTANT PLS DO NOT TOUCH IMPORTS: import data stack before torch/model adapters, otherwise everything hard crashes and it becomes impossible to debug
-from data.loader import load_dataset
+ML_PIPELINE_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = ML_PIPELINE_ROOT.parent
+if str(ML_PIPELINE_ROOT) not in sys.path:
+    sys.path.insert(0, str(ML_PIPELINE_ROOT))
+if str(REPO_ROOT) not in sys.path:
+    sys.path.append(str(REPO_ROOT))
 
 from pipeline.experiment import Experiment
 from pipeline.experiment_runner import ExperimentRunner
@@ -21,17 +24,6 @@ from test_models_and_preprocessors.zero_model import ZeroModel
 from preprocessors.standard_scaler_preprocessor import StandardScalerPreprocessor
 from preprocessors.wavelet_preprocessor import WaveletPreprocessor
 from preprocessors.patch_tst_preprocessor import PatchTSTPreprocessor
-from preprocessors.kernel_feature_preprocessor import KernelFeaturePreprocessor
-
-# Torch gets imported through these, so keep them AFTER data.loader
-from models.exp1_ab_models import CNNBiLSTMPipelineModel, CNNXLSTMPipelineModel
-from models.exp1_cd_models import CNNBiLSTMTransformerPipelineModel, CNNTransformerPipelineModel
-from models.exp2_models import (
-    DecoderOnlyTransformerPipelineModel,
-    EncoderDecoderTransformerPipelineModel,
-    KernelTransformerPipelineModel,
-    ITransformerPipelineModel,
-)
 
 
 def run_experiments(experiments,
@@ -79,6 +71,11 @@ def _make_model(model_cls, *, seed: int, input_kind: str):
 def _build_exp1_block(label: str, preprocessor_factory, *,
                       input_kind: str, seed: int):
     """Build the four Exp.1 experiments for one preprocessing strategy."""
+    # Torch-backed imports stay local so baseline/Prophet-only CLI paths do not
+    # require torch unless those experiment families are requested.
+    from models.exp1_ab_models import CNNBiLSTMPipelineModel, CNNXLSTMPipelineModel
+    from models.exp1_cd_models import CNNBiLSTMTransformerPipelineModel, CNNTransformerPipelineModel
+
     return [
         Experiment(
             f"Exp1.a CNN-BiLSTM + {label}",
@@ -103,8 +100,30 @@ def _build_exp1_block(label: str, preprocessor_factory, *,
     ]
 
 
+def _build_prophet_experiment(args):
+    """Build the Prophet baseline experiment for the shared pipeline runner."""
+    from models.prophet_model import ProphetPipelineModel
+
+    return Experiment(
+        "Prophet baseline",
+        IdentityPreprocessor(),
+        ProphetPipelineModel(
+            target_feature_index=args.prophet_target_feature_index,
+            freq=args.prophet_freq,
+        ),
+    )
+
+
 def _build_exp2_experiments(args):
     """Build the five proposal-aligned Exp.2 experiments."""
+    from preprocessors.kernel_feature_preprocessor import KernelFeaturePreprocessor
+    from models.exp2_models import (
+        DecoderOnlyTransformerPipelineModel,
+        EncoderDecoderTransformerPipelineModel,
+        KernelTransformerPipelineModel,
+        ITransformerPipelineModel,
+    )
+
     return [
         Experiment(
             "Exp2.a Decoder-Only Tx + Norm",
@@ -143,8 +162,6 @@ def _build_exp2_experiments(args):
 
 
 def demo():
-    print("[boot] entering demo()", flush=True)
-
     parser = argparse.ArgumentParser(description="Run Exp.1 and Exp.2 experiments.")
     parser.add_argument("--subset", default="Without_Gas")
     parser.add_argument("--input-len", type=int, default=168)
@@ -174,6 +191,12 @@ def demo():
     parser.add_argument("--kernel-components", type=int, default=32)
     parser.add_argument("--kernel-gamma", type=float, default=1.0)
     parser.add_argument("--kernel-random-state", type=int, default=42)
+    parser.add_argument("--prophet", action="store_true",
+                        help="Run the Prophet baseline first through the shared pipeline.")
+    parser.add_argument("--prophet-freq", default="h",
+                        help="Pandas frequency string for Prophet's synthetic timeline.")
+    parser.add_argument("--prophet-target-feature-index", type=int, default=0,
+                        help="Feature index in X that contains the historical target.")
 
     args = parser.parse_args()
 
@@ -181,11 +204,16 @@ def demo():
     include_wavelet = args.include_exp1_wavelet or args.include_exp1
     include_patch = args.include_exp1_patch or args.include_exp1
 
-    experiments = [
+    experiments = []
+
+    if args.prophet:
+        experiments.append(_build_prophet_experiment(args))
+
+    experiments.extend([
         Experiment("Mean baseline", IdentityPreprocessor(), MeanModel()),
         Experiment("Zero baseline", IdentityPreprocessor(), ZeroModel()),
         Experiment("MinMax + Mean", MinMaxPreprocessor(), MeanModel()),
-    ]
+    ])
 
     if include_norm:
         experiments.extend(_build_exp1_block(
