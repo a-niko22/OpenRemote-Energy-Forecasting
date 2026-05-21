@@ -1,62 +1,37 @@
-# main.py
-# =============================================================================
-# Entry point for the  pipeline.
-#
-# This file is the only place you need to touch to run experiments. The
-# pipeline itself (data loading, splitting, windowing, fit/transform, metrics)
-# is already wired up. Your job is to define WHICH experiments to run by
-# adding entries to the `experiments` list inside demo().
-#
-# Pipeline flow (handled for you, do not modify):
-#   load_dataset -> chronological_split -> windowing -> preprocessor.fit on
-#   train -> preprocessor.transform on train/val/test -> model.fit -> predict
-#   -> metrics.
-#
-# What you need to do:
-#   1. Build your model in a new file under models/ that inherits from
-#      BaseModel (interfaces/base_model.py).
-#   2. Build your preprocessor under preprocessors/ that inherits
-#      from BasePreprocessor (interfaces/base_preprocessor.py).
-#      If you don't need preprocessing, use IdentityPreprocessor inside test_models_and_preprocessors/.
-#   3. Import them at the top of this file.
-#   4. Add an Experiment(...) entry to the `experiments` list in demo().
-#   5. Run: python main.py
-#
-# Contracts (read these before implementing):
-#   BaseModel        -> fit(X, y, X_val=None, y_val=None, **kwargs), predict(X)
-#                       X shape: (n_windows, input_len, n_features)
-#                       y shape: (n_windows, horizon)
-#                       predict returns (n_windows, horizon)
-#   BasePreprocessor -> fit(X, y=None), transform(X)
-#                       MUST be shape-preserving. Do not change row count.
-#                       Windowing is NOT a preprocessor (it changes shape).
-# =============================================================================
+print("[ABSOLUTE TOP OF MAIN]", flush=True)
+
+import os, sys
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
 import argparse
 import random
 import numpy as np
 
+# VERY IMPORTANT PLS DO NOT TOUCH IMPORTS: import data stack before torch/model adapters, otherwise everything hard crashes and it becomes impossible to debug
+from data.loader import load_dataset
+
 from pipeline.experiment import Experiment
 from pipeline.experiment_runner import ExperimentRunner
 
-# Baselines provided as reference implementations. Use these to sanity-check
-# that any real model you build actually learns something. If your model
-# cannot beat MeanModel, it is broken or sucks.
 from test_models_and_preprocessors.identity_preprocessor import IdentityPreprocessor
 from test_models_and_preprocessors.minmax_preprocessor import MinMaxPreprocessor
 from test_models_and_preprocessors.mean_model import MeanModel
 from test_models_and_preprocessors.zero_model import ZeroModel
 
-from models.exp1_ab_models import (
-    CNNBiLSTMPipelineModel,
-    CNNXLSTMPipelineModel,
-)
-from models.exp1_cd_models import (
-    CNNBiLSTMTransformerPipelineModel,
-    CNNTransformerPipelineModel,
-)
-from models.prophet_model import ProphetPipelineModel
+from preprocessors.standard_scaler_preprocessor import StandardScalerPreprocessor
+from preprocessors.wavelet_preprocessor import WaveletPreprocessor
+from preprocessors.patch_tst_preprocessor import PatchTSTPreprocessor
+from preprocessors.kernel_feature_preprocessor import KernelFeaturePreprocessor
 
+# Torch gets imported through these, so keep them AFTER data.loader
+from models.exp1_ab_models import CNNBiLSTMPipelineModel, CNNXLSTMPipelineModel
+from models.exp1_cd_models import CNNBiLSTMTransformerPipelineModel, CNNTransformerPipelineModel
+from models.exp2_models import (
+    DecoderOnlyTransformerPipelineModel,
+    EncoderDecoderTransformerPipelineModel,
+    KernelTransformerPipelineModel,
+    ITransformerPipelineModel,
+)
 
 
 def run_experiments(experiments,
@@ -66,162 +41,185 @@ def run_experiments(experiments,
                     horizon=48,
                     train_ratio=0.7,
                     val_ratio=0.15,
-                    seed=42):
-    """Core application entrypoint. Takes a list of experiments, runs them all.
-
-    Experiments can be built elsewhere and handed in. The app handles data
-    loading, splitting, windowing, and result collection, not which
-    experiments to run.
-
-    You normally do not need to call this directly. demo() wraps it with CLI
-    arguments. Call this from a notebook if you want to script runs.
-    """
+                    seed=42,
+                    **fit_kwargs):
     from data.loader import load_dataset, chronological_split
 
-    # Seed everything we control here. If your model uses PyTorch/TF, ALSO seed
-    # those inside your model's __init__ or fit() (torch.manual_seed,
-    # tf.random.set_seed). The pipeline cannot do that for you.
     random.seed(seed)
     np.random.seed(seed)
 
-    # Loads from Hugging Face. First run downloads, subsequent runs hit the
-    # local cache (~/.cache/huggingface/datasets). Subset options live in the
-    # dataset repo: "Gas", "Without_Gas"
     X, y = load_dataset(repo_id, subset)
-
-    # Chronological split: NO shuffling. Time-series data must stay ordered or
-    # we leak future info into training. Default 70/15/15.
     X_tr, y_tr, X_val, y_val, X_te, y_te = chronological_split(
         X, y, train_ratio, val_ratio
     )
 
-    # Runner does per-experiment windowing with the input_len/horizon below,
-    # unless an Experiment overrides them via its own input_len/horizon args.
     runner = ExperimentRunner(input_len=input_len, horizon=horizon)
     return runner.run_all(experiments, X_tr, y_tr, X_te, y_te,
-                          X_val=X_val, y_val=y_val)
+                          X_val=X_val, y_val=y_val, **fit_kwargs)
 
 
 def print_results(results, input_len, horizon):
-    """Pretty-prints the metrics table. Add columns here if you add metrics
-    in pipeline/metrics.py.
-
-    Current metrics:
-      MAE         -> overall mean absolute error
-      RMSE        -> overall root mean squared error
-      peak10-MAE  -> MAE on the top 10% of true prices (beat Prophet on peaks specifically)
-    Per-horizon MAE is computed but not printed; pull it from
-    results[i]["metrics"]["per_horizon_mae"] if you want to plot error growth
-    across the 48h horizon
-    """
-    header = f"{'experiment':20} | {'window':>10} | {'MAE':>8} | {'RMSE':>8} | {'peak10-MAE':>11}"
+    header = (f"{'experiment':40} | {'window':>10} | {'MAE':>8} | "
+              f"{'RMSE':>8} | {'peak10-MAE':>11}")
     print(header)
     print("-" * len(header))
     for r in results:
         m = r["metrics"]
-        print(f"{r['experiment_name']:20} | "
+        print(f"{r['experiment_name']:40} | "
               f"{r['input_len']:>4}->{r['horizon']:<3} | "
               f"{m['mae']:>8.3f} | "
               f"{m['rmse']:>8.3f} | "
               f"{m['peak_mae_top10']:>11.3f}")
 
 
-def demo():
-    """Runs the configured experiments. THIS is the function you edit.
+def _make_model(model_cls, *, seed: int, input_kind: str):
+    return model_cls(seed=seed, input_kind=input_kind)
 
-    CLI usage:
-      python main.py                          # run with defaults
-      python main.py --subset Gas             # switch dataset subset
-      python main.py --horizon 24             # 24h forecast instead of 48h
-      python main.py --input-len 336          # 2-week lookback instead of 1
-      python main.py --seed 0                 # different seed for reproducibility checks
-    """
-    parser = argparse.ArgumentParser(description="Run baseline experiments.")
+
+def _build_exp1_block(label: str, preprocessor_factory, *,
+                      input_kind: str, seed: int):
+    """Build the four Exp.1 experiments for one preprocessing strategy."""
+    return [
+        Experiment(
+            f"Exp1.a CNN-BiLSTM + {label}",
+            preprocessor_factory(),
+            _make_model(CNNBiLSTMPipelineModel, seed=seed, input_kind=input_kind),
+        ),
+        Experiment(
+            f"Exp1.b CNN-xLSTM + {label}",
+            preprocessor_factory(),
+            _make_model(CNNXLSTMPipelineModel, seed=seed, input_kind=input_kind),
+        ),
+        Experiment(
+            f"Exp1.c CNN-BiLSTM-Tx + {label}",
+            preprocessor_factory(),
+            _make_model(CNNBiLSTMTransformerPipelineModel, seed=seed, input_kind=input_kind),
+        ),
+        Experiment(
+            f"Exp1.d CNN-Tx + {label}",
+            preprocessor_factory(),
+            _make_model(CNNTransformerPipelineModel, seed=seed, input_kind=input_kind),
+        ),
+    ]
+
+
+def _build_exp2_experiments(args):
+    """Build the five proposal-aligned Exp.2 experiments."""
+    return [
+        Experiment(
+            "Exp2.a Decoder-Only Tx + Norm",
+            StandardScalerPreprocessor(),
+            _make_model(DecoderOnlyTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        ),
+        Experiment(
+            "Exp2.b Decoder-Only Tx + Wavelet",
+            WaveletPreprocessor(
+                wavelet_name=args.wavelet_name,
+                level=args.wavelet_level,
+                mode=args.wavelet_mode,
+            ),
+            _make_model(DecoderOnlyTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        ),
+        Experiment(
+            "Exp2.c Encoder-Decoder Tx + Norm",
+            StandardScalerPreprocessor(),
+            _make_model(EncoderDecoderTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        ),
+        Experiment(
+            "Exp2.d Kernel Tx + Kernel",
+            KernelFeaturePreprocessor(
+                n_components=args.kernel_components,
+                gamma=args.kernel_gamma,
+                random_state=args.kernel_random_state,
+            ),
+            _make_model(KernelTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        ),
+        Experiment(
+            "Exp2.e iTransformer + Norm",
+            StandardScalerPreprocessor(),
+            _make_model(ITransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        ),
+    ]
+
+
+def demo():
+    print("[boot] entering demo()", flush=True)
+
+    parser = argparse.ArgumentParser(description="Run Exp.1 and Exp.2 experiments.")
     parser.add_argument("--subset", default="Without_Gas")
-    parser.add_argument("--input-len", type=int, default=168,
-                        help="Lookback window size in hours.")
-    parser.add_argument("--horizon", type=int, default=48,
-                        help="Forecast horizon in hours.")
+    parser.add_argument("--input-len", type=int, default=168)
+    parser.add_argument("--horizon", type=int, default=48)
     parser.add_argument("--train-ratio", type=float, default=0.7)
     parser.add_argument("--val-ratio", type=float, default=0.15)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument(
-        "--include-exp1-ab",
-        action="store_true",
-        help="Also run the Exp.1.a/b ml_pipeline wrapper examples.",
-    )
-    parser.add_argument(
-        "--include-exp1-cd",
-        action="store_true",
-        help="Also run the Exp.1.c/d ml_pipeline wrapper examples.",
-    )
-    parser.add_argument(
-        "--include-prophet",
-        action="store_true",
-        help="Also run Prophet through the shared ml_pipeline BaseModel interface.",
-    )
+
+    parser.add_argument("--include-exp1-norm", action="store_true")
+    parser.add_argument("--include-exp1-wavelet", action="store_true")
+    parser.add_argument("--include-exp1-patch", action="store_true")
+    parser.add_argument("--include-exp1", action="store_true")
+
+    parser.add_argument("--include-exp2", action="store_true",
+                        help="Add the 5 proposal-aligned Exp.2 runs.")
+
+    parser.add_argument("--epochs", type=int, default=25)
+    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--lr", type=float, default=1e-3)
+
+    parser.add_argument("--wavelet-name", default="db1")
+    parser.add_argument("--wavelet-level", type=int, default=1)
+    parser.add_argument("--wavelet-mode", default="concat", choices=["concat", "replace"])
+    parser.add_argument("--patch-len", type=int, default=24)
+    parser.add_argument("--patch-stride", type=int, default=12)
+
+    parser.add_argument("--kernel-components", type=int, default=32)
+    parser.add_argument("--kernel-gamma", type=float, default=1.0)
+    parser.add_argument("--kernel-random-state", type=int, default=42)
+
     args = parser.parse_args()
 
-    # =========================================================================
-    # EDIT HERE: Define experiments to run.
-    #
-    # Each entry is Experiment(name, preprocessor, model, input_len=?, horizon=?).
-    # input_len/horizon are optional per-experiment overrides; if omitted the
-    # CLI defaults are used.
-    #
-    # Rules:
-    #   - name must be unique (it shows up in the results table).
-    #   - preprocessor must inherit from BasePreprocessor.
-    #   - model must inherit from BaseModel.
-    #   - Use IdentityPreprocessor when your model needs raw input.
-    #
-    # The three baselines below can stay in the list. Every real model you
-    # build can be compared against these. If a real model loses to
-    # MeanModel, it is broken or really bad; do not report it as a result.
+    include_norm = args.include_exp1_norm or args.include_exp1
+    include_wavelet = args.include_exp1_wavelet or args.include_exp1
+    include_patch = args.include_exp1_patch or args.include_exp1
 
-    # =========================================================================
     experiments = [
-        Experiment("Mean baseline",  IdentityPreprocessor(), MeanModel()),
-        Experiment("Zero baseline",  IdentityPreprocessor(), ZeroModel()),
-        Experiment("MinMax + Mean",  MinMaxPreprocessor(),   MeanModel()),
+        Experiment("Mean baseline", IdentityPreprocessor(), MeanModel()),
+        Experiment("Zero baseline", IdentityPreprocessor(), ZeroModel()),
+        Experiment("MinMax + Mean", MinMaxPreprocessor(), MeanModel()),
     ]
 
-    if args.include_exp1_ab:
-        experiments.extend([
-            Experiment(
-                "Exp1.a CNN-BiLSTM",
-                IdentityPreprocessor(),
-                CNNBiLSTMPipelineModel(seed=args.seed),
-            ),
-            Experiment(
-                "Exp1.b CNN-xLSTM",
-                IdentityPreprocessor(),
-                CNNXLSTMPipelineModel(seed=args.seed),
-            ),
-        ])
+    if include_norm:
+        experiments.extend(_build_exp1_block(
+            "Norm",
+            preprocessor_factory=lambda: StandardScalerPreprocessor(),
+            input_kind="sequence",
+            seed=args.seed,
+        ))
 
-    if args.include_exp1_cd:
-        experiments.extend([
-            Experiment(
-                "Exp1.c CNN-BiLSTM-Transformer",
-                IdentityPreprocessor(),
-                CNNBiLSTMTransformerPipelineModel(seed=args.seed),
+    if include_wavelet:
+        experiments.extend(_build_exp1_block(
+            "Wavelet",
+            preprocessor_factory=lambda: WaveletPreprocessor(
+                wavelet_name=args.wavelet_name,
+                level=args.wavelet_level,
+                mode=args.wavelet_mode,
             ),
-            Experiment(
-                "Exp1.d CNN-Transformer",
-                IdentityPreprocessor(),
-                CNNTransformerPipelineModel(seed=args.seed),
-            ),
-        ])
+            input_kind="sequence",
+            seed=args.seed,
+        ))
 
-    if args.include_prophet:
-        experiments.append(
-            Experiment(
-                "Prophet baseline",
-                IdentityPreprocessor(),
-                ProphetPipelineModel(target_feature_index=0, freq="h"),
-            )
-        )
+    if include_patch:
+        experiments.extend(_build_exp1_block(
+            "Patch",
+            preprocessor_factory=lambda: PatchTSTPreprocessor(
+                patch_len=args.patch_len,
+                patch_stride=args.patch_stride,
+            ),
+            input_kind="patch",
+            seed=args.seed,
+        ))
+
+    if args.include_exp2:
+        experiments.extend(_build_exp2_experiments(args))
 
     results = run_experiments(
         experiments,
@@ -231,6 +229,9 @@ def demo():
         train_ratio=args.train_ratio,
         val_ratio=args.val_ratio,
         seed=args.seed,
+        epochs=args.epochs,
+        batch_size=args.batch_size,
+        learning_rate=args.lr,
     )
     print_results(results, args.input_len, args.horizon)
 

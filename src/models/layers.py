@@ -91,6 +91,29 @@ def build_activation(name: str) -> nn.Module:
     raise ValueError(f"Unsupported activation: {name}")
 
 
+class SinusoidalPositionalEncoding(nn.Module):
+    """Fixed sinusoidal positional encoding added to token embeddings."""
+
+    def __init__(self, d_model: int, max_len: int = 10000, dropout: float = 0.0):
+        super().__init__()
+        self.dropout = nn.Dropout(dropout)
+        position = torch.arange(max_len).unsqueeze(1).float()
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe = torch.zeros(1, max_len, d_model)
+        pe[0, :, 0::2] = torch.sin(position * div_term)
+        pe[0, :, 1::2] = torch.cos(position * div_term[: pe[0, :, 1::2].shape[-1]])
+        self.register_buffer("pe", pe, persistent=False)
+
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        sequence_length = inputs.size(1)
+        if sequence_length > self.pe.size(1):
+            raise ValueError(
+                f"Sequence length {sequence_length} exceeds positional encoding max length {self.pe.size(1)}."
+            )
+        encoded = inputs + self.pe[:, :sequence_length].to(dtype=inputs.dtype, device=inputs.device)
+        return self.dropout(encoded)
+
+
 class PatchInputAdapter(nn.Module):
     """Optional projection used when patch tokens are fed into the model."""
 
@@ -142,31 +165,6 @@ class ConvTemporalEncoder(nn.Module):
         # Inputs are (batch, time, features). Conv1d expects channels first.
         encoded = self.network(inputs.transpose(1, 2))
         return encoded.transpose(1, 2)
-
-
-class SinusoidalPositionalEncoding(nn.Module):
-    """Sinusoidal positional encoding for batch-first sequence tensors."""
-
-    def __init__(self, d_model: int, max_len: int = 10000, dropout: float = 0.0):
-        super().__init__()
-        self._dropout = nn.Dropout(dropout)
-        position = torch.arange(max_len, dtype=torch.float32).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2, dtype=torch.float32) * (-math.log(10000.0) / d_model))
-
-        encoding = torch.zeros(max_len, d_model, dtype=torch.float32)
-        encoding[:, 0::2] = torch.sin(position * div_term)
-        encoding[:, 1::2] = torch.cos(position * div_term[: encoding[:, 1::2].shape[1]])
-        self.register_buffer("encoding", encoding.unsqueeze(0), persistent=False)
-        self.dropout = nn.Dropout(dropout)
-
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        sequence_length = inputs.size(1)
-        if sequence_length > self.encoding.size(1):
-            raise ValueError(
-                f"Sequence length {sequence_length} exceeds positional encoding max length {self.encoding.size(1)}."
-            )
-        encoded = inputs + self.encoding[:, :sequence_length, :].to(dtype=inputs.dtype, device=inputs.device)
-        return self.dropout(encoded)
 
 
 class OptionalProjection(nn.Module):

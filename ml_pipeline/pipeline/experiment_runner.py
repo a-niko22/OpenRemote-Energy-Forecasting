@@ -1,21 +1,29 @@
+import gc
+
 from data.windowing import make_windows
 from pipeline.metrics import compute_metrics
 
+try:
+    import torch
+    _HAS_TORCH = True
+except ModuleNotFoundError:
+    _HAS_TORCH = False
+
+
+def _free_memory():
+    """Force Python GC + CUDA cache clear. Called between experiments."""
+    gc.collect()
+    if _HAS_TORCH and torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+
 
 class ExperimentRunner:
-    """Orchestrates: per-experiment windowing → preprocessor fit/transform
-    → model fit → predict → metrics.
+    """Orchestrates: per-experiment windowing -> preprocessor fit/transform
+    -> model fit -> predict -> metrics.
 
-    Windowing lives here (not in a preprocessor) because it changes sample count
-    and must happen with per-experiment input_len/horizon overrides. Preprocessors
-    are shape-preserving transformations provided by experiments (scaling,
-    differencing, target-aware transforms, etc.) — this application does not
-    define preprocessing logic itself.
-
-    Validation data, if provided, is windowed and transformed with the same
-    fitted preprocessor, then forwarded to model.fit() via kwargs. Models that
-    need it (NNs with early stopping) consume X_val/y_val; baselines ignore
-    them via **kwargs.
+    Frees GPU memory between consecutive experiments so a heavy model (xLSTM)
+    doesn't inherit fragmented memory from the previous run.
     """
 
     def __init__(self, input_len=168, horizon=48):
@@ -61,6 +69,19 @@ class ExperimentRunner:
 
     def run_all(self, experiments, X_train, y_train, X_test, y_test,
                 X_val=None, y_val=None, **fit_kwargs):
-        return [self.run(exp, X_train, y_train, X_test, y_test,
-                         X_val=X_val, y_val=y_val, **fit_kwargs)
-                for exp in experiments]
+        results = []
+        for idx, exp in enumerate(experiments):
+            print(f"\n[{idx+1}/{len(experiments)}] {exp.name}", flush=True)
+            result = self.run(exp, X_train, y_train, X_test, y_test,
+                              X_val=X_val, y_val=y_val, **fit_kwargs)
+            results.append(result)
+            # Drop the trained torch model reference and clear CUDA cache so
+            # the next experiment starts with a clean GPU.
+            try:
+                if hasattr(exp.model, "model") and exp.model.model is not None:
+                    exp.model.model.cpu()
+                    exp.model.model = None
+            except Exception:
+                pass
+            _free_memory()
+        return results
