@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from src.models.decoder_only_transformer import DecoderOnlyTransformerModel
 from src.models.encoder_decoder_transformer import EncoderDecoderTransformerModel
-from src.models.fft_decoder_transformer import FFTDecoderTransformerModel
 from src.models.itransformer import ITransformerModel
 from src.models.kernel_transformer import KernelTransformerModel
 from src.utils.config import ModelConfig, TransformerConfig
@@ -36,12 +35,6 @@ def _default_exp2a_model_config() -> ModelConfig:
         name="decoder_only_transformer",
         transformer=_base_transformer_config(),
     )
-
-
-def _default_exp2b_model_config() -> ModelConfig:
-    cfg = _base_transformer_config()
-    cfg.fft_modes = 32
-    return ModelConfig(name="fft_decoder_transformer", transformer=cfg)
 
 
 def _default_exp2c_model_config() -> ModelConfig:
@@ -76,22 +69,6 @@ class DecoderOnlyTransformerPipelineModel(_TorchForecastingPipelineModel):
             model_config=model_config or _default_exp2a_model_config(),
             **kwargs,
         )
-
-
-class FFTDecoderTransformerPipelineModel(_TorchForecastingPipelineModel):
-    """Exp.2.b FFT + Decoder-Only Transformer."""
-
-    model_type = "exp2b_fft_decoder_transformer"
-    torch_model_cls = FFTDecoderTransformerModel
-
-    def __init__(self, *args, model_config: ModelConfig | None = None, **kwargs):
-        super().__init__(
-            *args,
-            model_config=model_config or _default_exp2b_model_config(),
-            **kwargs,
-        )
-
-
 class EncoderDecoderTransformerPipelineModel(_TorchForecastingPipelineModel):
     """Exp.2.c Encoder-Decoder Transformer."""
 
