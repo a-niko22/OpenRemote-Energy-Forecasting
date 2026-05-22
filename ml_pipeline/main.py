@@ -1,9 +1,6 @@
 import os, sys
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
-import argparse
-import random
-import numpy as np
 from pathlib import Path
 
 ML_PIPELINE_ROOT = Path(__file__).resolve().parent
@@ -12,6 +9,14 @@ if str(ML_PIPELINE_ROOT) not in sys.path:
     sys.path.insert(0, str(ML_PIPELINE_ROOT))
 if str(REPO_ROOT) not in sys.path:
     sys.path.append(str(REPO_ROOT))
+
+import argparse
+import random
+import numpy as np
+
+# VERY IMPORTANT PLS DO NOT TOUCH IMPORTS: import data stack before torch/model adapters,
+# otherwise some Windows/server DLL setups can hard-crash with no Python traceback.
+from data.loader import load_dataset
 
 from pipeline.experiment import Experiment
 from pipeline.experiment_runner import ExperimentRunner
