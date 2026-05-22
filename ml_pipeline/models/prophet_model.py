@@ -11,7 +11,7 @@ import pandas as pd
 
 try:
     from prophet import Prophet as _Prophet
-except ModuleNotFoundError:
+except (ImportError, ModuleNotFoundError):
     _Prophet = None
 
 from interfaces.base_model import BaseModel
@@ -59,6 +59,8 @@ class ProphetPipelineModel(BaseModel):
         self.horizon: int | None = None
         self.is_fitted = False
         self.train_series_length: int | None = None
+        self.validation_series_length: int = 0
+        self.fit_series_length: int | None = None
         self.fit_timestamp: str | None = None
 
     @staticmethod
@@ -134,11 +136,22 @@ class ProphetPipelineModel(BaseModel):
         learning_rate=None,
         **kwargs,
     ):
-        del X_val, y_val, epochs, batch_size, learning_rate, kwargs
+        del epochs, batch_size, learning_rate, kwargs
         X_array = self._ensure_3d_features(X)
         y_array = self._ensure_2d_targets(y)
 
         series = self._reconstruct_train_series(X_array, y_array)
+        train_series_length = int(len(series))
+        validation_series_length = 0
+        if X_val is not None or y_val is not None:
+            if X_val is None or y_val is None:
+                raise ValueError("X_val and y_val must both be provided or both be None.")
+            X_val_array = self._ensure_3d_features(X_val)
+            y_val_array = self._ensure_2d_targets(y_val)
+            validation_series = self._reconstruct_train_series(X_val_array, y_val_array)
+            validation_series_length = int(len(validation_series))
+            series = np.concatenate([series, validation_series], axis=0)
+
         ds = pd.date_range(
             start=self.settings.synthetic_start,
             periods=len(series),
@@ -151,22 +164,28 @@ class ProphetPipelineModel(BaseModel):
 
         self.input_len = int(X_array.shape[1])
         self.horizon = int(y_array.shape[1])
-        self.train_series_length = int(len(series))
+        self.train_series_length = train_series_length
+        self.validation_series_length = validation_series_length
+        self.fit_series_length = int(len(series))
         self.fit_timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         self.is_fitted = True
         return self
 
     def predict(self, X):
-        if not self.is_fitted or self.model is None or self.horizon is None:
+        if not self.is_fitted or self.model is None or self.horizon is None or self.input_len is None:
             raise RuntimeError("Model must be fitted before calling predict().")
 
         X_array = self._ensure_3d_features(X)
         n_windows = int(len(X_array))
-        periods = n_windows + self.horizon - 1
+        if n_windows == 0:
+            return np.empty((0, self.horizon), dtype=np.float32)
+
+        periods = self.input_len + n_windows + self.horizon - 1
 
         future = self.model.make_future_dataframe(periods=periods, freq=self.settings.freq)
         forecast = self.model.predict(future)
-        yhat = np.asarray(forecast["yhat"].tail(periods), dtype=np.float64)
+        future_yhat = np.asarray(forecast["yhat"].tail(periods), dtype=np.float64)
+        yhat = future_yhat[self.input_len:]
 
         return self._sliding_matrix(yhat, self.horizon)
 
@@ -177,6 +196,8 @@ class ProphetPipelineModel(BaseModel):
             "input_len": self.input_len,
             "horizon": self.horizon,
             "train_series_length": self.train_series_length,
+            "validation_series_length": self.validation_series_length,
+            "fit_series_length": self.fit_series_length,
             "fit_timestamp": self.fit_timestamp,
             "yearly_seasonality": self.settings.yearly_seasonality,
             "weekly_seasonality": self.settings.weekly_seasonality,

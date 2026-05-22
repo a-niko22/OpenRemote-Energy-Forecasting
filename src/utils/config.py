@@ -98,15 +98,13 @@ class TransformerConfig:
     num_layers: int
     dim_feedforward: int
     dropout: float
-    activation: str = "relu"
-    pooling: str = "mean"
-    head_hidden_size: int = 128
+    activation: str
+    pooling: str
+    head_hidden_size: int
     max_len: int = 10000
     num_decoder_layers: int | None = None
-    fft_modes: int | None = None
-    fft_kind: str | None = None
-    kernel_type: str | None = None
     feature_dim: int | None = None
+    fft_modes: int | None = None
 
 
 @dataclass
@@ -223,10 +221,6 @@ def _build_model_config(data: dict[str, Any]) -> ModelConfig:
     bilstm_data = data.get("bilstm")
     xlstm_data = data.get("xlstm")
     transformer_data = data.get("transformer")
-    if transformer_data:
-        transformer_data = dict(transformer_data)
-        if "pool" in transformer_data and "pooling" not in transformer_data:
-            transformer_data["pooling"] = transformer_data.pop("pool")
     return ModelConfig(
         name=data["name"],
         patch_embed_dim=int(data.get("patch_embed_dim", 64)),

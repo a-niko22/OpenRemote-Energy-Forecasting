@@ -107,6 +107,7 @@ class ProphetPipelineWrapperTests(unittest.TestCase):
         self.assertEqual(result["predictions"].shape, result["y_test"].shape)
         self.assertEqual(result["predictions"].shape[1], 3)
         self.assertEqual(result["model_config"]["type"], "prophet_interface_baseline")
+        self.assertEqual(result["predictions"][0].tolist(), [65.0, 66.0, 67.0])
 
     def test_get_config_contains_expected_fields(self) -> None:
         X, y = _windowed_arrays(n_windows=9, input_len=4, n_features=1, horizon=2)
