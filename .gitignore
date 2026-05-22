@@ -84,3 +84,6 @@ tests/.tmp/
 # Portfolio-only local documents
 docs/portfolio/
 README.md
+
+# ml_pipeline logs
+ml_pipeline/pipeline_run_log.txt

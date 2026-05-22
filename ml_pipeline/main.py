@@ -2,7 +2,16 @@ import os
 import sys
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
+import argparse
+import random
+import time
+import traceback
+from datetime import datetime
 from pathlib import Path
+from pprint import pformat
+
+import numpy as np
+import pandas as pd
 
 ML_PIPELINE_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ML_PIPELINE_ROOT.parent
@@ -11,16 +20,7 @@ if str(ML_PIPELINE_ROOT) not in sys.path:
 if str(REPO_ROOT) not in sys.path:
     sys.path.append(str(REPO_ROOT))
 
-import argparse
-import random
-
-import numpy as np
-import pandas as pd
-
-# VERY IMPORTANT PLS DO NOT TOUCH IMPORTS: import data stack before torch/model adapters,
-# otherwise some Windows/server DLL setups can hard-crash with no Python traceback.
-from data.loader import chronological_split, load_dataset
-
+import data.loader as data_loader
 from data.windowing import make_windows
 from pipeline.experiment import Experiment
 from pipeline.experiment_runner import ExperimentRunner, _free_memory
@@ -36,6 +36,100 @@ from preprocessors.wavelet_preprocessor import WaveletPreprocessor
 from preprocessors.patch_tst_preprocessor import PatchTSTPreprocessor
 
 
+def _now_text() -> str:
+    return datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def _resolve_log_path(log_file: str | Path) -> Path:
+    path = Path(log_file)
+    if not path.is_absolute():
+        path = ML_PIPELINE_ROOT / path
+    return path
+
+
+def _class_name(obj) -> str:
+    return type(obj).__name__
+
+
+class RunLogger:
+    """Plain-text run logger. The file is overwritten at the start of each run."""
+
+    def __init__(self, path: str | Path):
+        self.path = _resolve_log_path(path)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.run_start_perf = time.perf_counter()
+        self.run_start_text = _now_text()
+
+    def _write(self, text: str) -> None:
+        with self.path.open("a", encoding="utf-8") as handle:
+            handle.write(text)
+            if not text.endswith("\n"):
+                handle.write("\n")
+
+    def start_run(self, args, fit_kwargs: dict) -> None:
+        with self.path.open("w", encoding="utf-8") as handle:
+            handle.write("ML Pipeline Run Log\n")
+            handle.write("===================\n")
+            handle.write(f"Started: {self.run_start_text}\n")
+            handle.write(f"Command: {' '.join(sys.argv)}\n")
+            handle.write(f"Working directory: {Path.cwd()}\n")
+            handle.write(f"Log file: {self.path}\n\n")
+            handle.write("CLI arguments:\n")
+            handle.write(pformat(vars(args), sort_dicts=True))
+            handle.write("\n\nFit kwargs:\n")
+            handle.write(pformat(fit_kwargs, sort_dicts=True))
+            handle.write("\n\n")
+
+    def finish_run(self, error: BaseException | None = None) -> None:
+        duration = time.perf_counter() - self.run_start_perf
+        self._write("Run finished")
+        self._write(f"Ended: {_now_text()}")
+        self._write(f"Total duration seconds: {duration:.3f}")
+        if error is not None:
+            self._write(f"Run status: FAILED ({type(error).__name__}: {error})")
+        else:
+            self._write("Run status: OK")
+
+    def start_experiment(self, index: int, total: int, name: str, *,
+                         dataset: dict, preprocessor: str, model: str,
+                         extra: dict | None = None) -> dict:
+        token = {
+            "name": name,
+            "start_perf": time.perf_counter(),
+            "start_text": _now_text(),
+        }
+        self._write("-" * 80)
+        self._write(f"[{index}/{total}] {name}")
+        self._write(f"Started: {token['start_text']}")
+        self._write(f"Dataset: {pformat(dataset, sort_dicts=True)}")
+        self._write(f"Preprocessor: {preprocessor}")
+        self._write(f"Model: {model}")
+        if extra:
+            self._write(f"Extra: {pformat(extra, sort_dicts=True)}")
+        return token
+
+    def finish_experiment(self, token: dict, result: dict | None = None,
+                          error: BaseException | None = None) -> None:
+        duration = time.perf_counter() - token["start_perf"]
+        self._write(f"Ended: {_now_text()}")
+        self._write(f"Duration seconds: {duration:.3f}")
+        if error is not None:
+            self._write(f"Status: FAILED ({type(error).__name__}: {error})")
+            self._write("Traceback:")
+            self._write(traceback.format_exc())
+            return
+        self._write("Status: OK")
+        if result is None:
+            return
+        self._write(f"Input window: {result['input_len']} -> {result['horizon']}")
+        self._write("Metrics:")
+        self._write(pformat(result.get("metrics", {}), sort_dicts=True))
+        self._write("Preprocessor config:")
+        self._write(pformat(result.get("preprocessor_config", {}), sort_dicts=True))
+        self._write("Model config:")
+        self._write(pformat(result.get("model_config", {}), sort_dicts=True))
+
+
 def run_experiments(experiments,
                     repo_id="CitrusBoy/EnergyPriceForecasting",
                     subset="Without_Gas",
@@ -44,18 +138,57 @@ def run_experiments(experiments,
                     train_ratio=0.7,
                     val_ratio=0.15,
                     seed=42,
+                    run_logger: RunLogger | None = None,
                     **fit_kwargs):
     random.seed(seed)
     np.random.seed(seed)
 
-    X, y = load_dataset(repo_id, subset)
-    X_tr, y_tr, X_val, y_val, X_te, y_te = chronological_split(
+    X, y = data_loader.load_dataset(repo_id, subset)
+    X_tr, y_tr, X_val, y_val, X_te, y_te = data_loader.chronological_split(
         X, y, train_ratio, val_ratio
     )
 
     runner = ExperimentRunner(input_len=input_len, horizon=horizon)
-    return runner.run_all(experiments, X_tr, y_tr, X_te, y_te,
-                          X_val=X_val, y_val=y_val, **fit_kwargs)
+    dataset_info = {
+        "repo_id": repo_id,
+        "subset": subset,
+        "target_col": "price",
+        "flow": "normal dataset -> window -> preprocessor -> model",
+        "train_rows": len(X_tr),
+        "val_rows": len(X_val),
+        "test_rows": len(X_te),
+    }
+    results = []
+    for idx, exp in enumerate(experiments):
+        print(f"\n[{idx+1}/{len(experiments)}] {exp.name}", flush=True)
+        token = None
+        if run_logger is not None:
+            token = run_logger.start_experiment(
+                idx + 1,
+                len(experiments),
+                exp.name,
+                dataset=dataset_info,
+                preprocessor=_class_name(exp.preprocessor),
+                model=_class_name(exp.model),
+                extra={
+                    "input_len": input_len,
+                    "horizon": horizon,
+                    "fit_kwargs": fit_kwargs,
+                },
+            )
+        try:
+            result = runner.run(exp, X_tr, y_tr, X_te, y_te,
+                                X_val=X_val, y_val=y_val, **fit_kwargs)
+        except Exception as exc:
+            if run_logger is not None and token is not None:
+                run_logger.finish_experiment(token, error=exc)
+            _release_model(exp.model)
+            raise
+        results.append(result)
+        if run_logger is not None and token is not None:
+            run_logger.finish_experiment(token, result=result)
+        _release_model(exp.model)
+    return results
 
 
 def print_results(results, input_len, horizon):
@@ -78,6 +211,7 @@ def _make_model(model_cls, *, seed: int, input_kind: str):
 
 def _build_exp1_block(label: str, preprocessor_factory, *,
                       input_kind: str, seed: int):
+    """Build the four Exp.1 experiments for one preprocessing strategy."""
     from models.exp1_ab_models import CNNBiLSTMPipelineModel, CNNXLSTMPipelineModel
     from models.exp1_cd_models import CNNBiLSTMTransformerPipelineModel, CNNTransformerPipelineModel
 
@@ -106,6 +240,7 @@ def _build_exp1_block(label: str, preprocessor_factory, *,
 
 
 def _build_prophet_experiment(args):
+    """Build the Prophet baseline experiment for the shared pipeline runner."""
     from models.prophet_model import ProphetPipelineModel
 
     return Experiment(
@@ -119,6 +254,7 @@ def _build_prophet_experiment(args):
 
 
 def _build_exp2_experiments(args):
+    """Build the five proposal-aligned Exp.2 experiments."""
     from preprocessors.exp2_raw_preprocessors import (
         Exp2StandardPreprocessor,
         Exp2WaveletPreprocessor,
@@ -230,57 +366,126 @@ def _run_exp2_raw_experiment(run_spec, train_frame, val_frame, test_frame, *,
 
 
 def run_exp2_experiments(exp2_runs, args, **fit_kwargs):
-    from data.loader import chronological_split_frame, load_dataset_frame
-
+    run_logger = getattr(args, "run_logger", None)
     raw_splits = None
+    raw_dataset_info = None
     normal_splits = None
+    normal_dataset_info = None
     results = []
 
     for idx, run in enumerate(exp2_runs):
         if run["kind"] == "raw":
             if raw_splits is None:
-                exp2_frame = load_dataset_frame(
+                exp2_frame = data_loader.load_dataset_frame(
                     repo_id=args.exp2_repo_id,
                     subset=args.exp2_subset,
                     target_col=args.exp2_target_col,
                 )
-                raw_splits = chronological_split_frame(
+                raw_splits = data_loader.chronological_split_frame(
                     exp2_frame,
                     train_ratio=args.train_ratio,
                     val_ratio=args.val_ratio,
                 )
+                raw_dataset_info = {
+                    "repo_id": args.exp2_repo_id,
+                    "subset": args.exp2_subset,
+                    "target_col": args.exp2_target_col,
+                    "flow": "Exp.2 raw DataFrame -> raw preprocessor -> window -> model",
+                    "train_rows": len(raw_splits[0]),
+                    "val_rows": len(raw_splits[1]),
+                    "test_rows": len(raw_splits[2]),
+                }
             print(f"\n[{idx+1}/{len(exp2_runs)}] {run['name']}", flush=True)
-            results.append(_run_exp2_raw_experiment(
-                run,
-                raw_splits[0],
-                raw_splits[1],
-                raw_splits[2],
-                target_col=args.exp2_target_col,
-                input_len=args.input_len,
-                horizon=args.horizon,
-                **fit_kwargs,
-            ))
+            preprocessor = run["preprocessor_factory"]()
+            token = None
+            if run_logger is not None:
+                token = run_logger.start_experiment(
+                    idx + 1,
+                    len(exp2_runs),
+                    run["name"],
+                    dataset=raw_dataset_info,
+                    preprocessor=_class_name(preprocessor),
+                    model=_class_name(run["model"]),
+                    extra={
+                        "input_len": args.input_len,
+                        "horizon": args.horizon,
+                        "fit_kwargs": fit_kwargs,
+                    },
+                )
+            try:
+                raw_run = {**run, "preprocessor_factory": lambda preprocessor=preprocessor: preprocessor}
+                result = _run_exp2_raw_experiment(
+                    raw_run,
+                    raw_splits[0],
+                    raw_splits[1],
+                    raw_splits[2],
+                    target_col=args.exp2_target_col,
+                    input_len=args.input_len,
+                    horizon=args.horizon,
+                    **fit_kwargs,
+                )
+            except Exception as exc:
+                if run_logger is not None and token is not None:
+                    run_logger.finish_experiment(token, error=exc)
+                _release_model(run["model"])
+                raise
+            results.append(result)
+            if run_logger is not None and token is not None:
+                run_logger.finish_experiment(token, result=result)
         else:
             if normal_splits is None:
-                X, y = load_dataset(subset=args.subset)
-                normal_splits = chronological_split(
+                X, y = data_loader.load_dataset(subset=args.subset)
+                normal_splits = data_loader.chronological_split(
                     X,
                     y,
                     train_ratio=args.train_ratio,
                     val_ratio=args.val_ratio,
                 )
+                normal_dataset_info = {
+                    "repo_id": "CitrusBoy/EnergyPriceForecasting",
+                    "subset": args.subset,
+                    "target_col": "price",
+                    "flow": "normal dataset -> window -> existing kernel preprocessor -> model",
+                    "train_rows": len(normal_splits[0]),
+                    "val_rows": len(normal_splits[2]),
+                    "test_rows": len(normal_splits[4]),
+                }
             print(f"\n[{idx+1}/{len(exp2_runs)}] {run['experiment'].name}", flush=True)
             runner = ExperimentRunner(input_len=args.input_len, horizon=args.horizon)
-            results.append(runner.run(
-                run["experiment"],
-                normal_splits[0],
-                normal_splits[1],
-                normal_splits[4],
-                normal_splits[5],
-                X_val=normal_splits[2],
-                y_val=normal_splits[3],
-                **fit_kwargs,
-            ))
+            token = None
+            if run_logger is not None:
+                token = run_logger.start_experiment(
+                    idx + 1,
+                    len(exp2_runs),
+                    run["experiment"].name,
+                    dataset=normal_dataset_info,
+                    preprocessor=_class_name(run["experiment"].preprocessor),
+                    model=_class_name(run["experiment"].model),
+                    extra={
+                        "input_len": args.input_len,
+                        "horizon": args.horizon,
+                        "fit_kwargs": fit_kwargs,
+                    },
+                )
+            try:
+                result = runner.run(
+                    run["experiment"],
+                    normal_splits[0],
+                    normal_splits[1],
+                    normal_splits[4],
+                    normal_splits[5],
+                    X_val=normal_splits[2],
+                    y_val=normal_splits[3],
+                    **fit_kwargs,
+                )
+            except Exception as exc:
+                if run_logger is not None and token is not None:
+                    run_logger.finish_experiment(token, error=exc)
+                _release_model(run["experiment"].model)
+                raise
+            results.append(result)
+            if run_logger is not None and token is not None:
+                run_logger.finish_experiment(token, result=result)
             _release_model(run["experiment"].model)
 
     return results
@@ -327,6 +532,8 @@ def demo():
     parser.add_argument("--exp2-repo-id", default="CitrusBoy/EnergyPriceForecasting")
     parser.add_argument("--exp2-subset", default="Gas_Without_Preprocessing")
     parser.add_argument("--exp2-target-col", default="price")
+    parser.add_argument("--log-file", default="pipeline_run_log.txt",
+                        help="Text log file to overwrite for each run.")
 
     args = parser.parse_args()
 
@@ -382,25 +589,38 @@ def demo():
         "learning_rate": args.lr,
     }
 
-    results = run_experiments(
-        experiments,
-        subset=args.subset,
-        input_len=args.input_len,
-        horizon=args.horizon,
-        train_ratio=args.train_ratio,
-        val_ratio=args.val_ratio,
-        seed=args.seed,
-        **fit_kwargs,
-    )
+    run_logger = RunLogger(args.log_file)
+    run_logger.start_run(args, fit_kwargs)
+    args.run_logger = run_logger
 
-    if args.include_exp2:
-        results.extend(run_exp2_experiments(
-            _build_exp2_experiments(args),
-            args,
+    try:
+        results = run_experiments(
+            experiments,
+            subset=args.subset,
+            input_len=args.input_len,
+            horizon=args.horizon,
+            train_ratio=args.train_ratio,
+            val_ratio=args.val_ratio,
+            seed=args.seed,
+            run_logger=run_logger,
             **fit_kwargs,
-        ))
+        )
+
+        if args.include_exp2:
+            results.extend(run_exp2_experiments(
+                _build_exp2_experiments(args),
+                args,
+                **fit_kwargs,
+            ))
+    except Exception as exc:
+        run_logger.finish_run(error=exc)
+        print(f"\nRun log written to: {run_logger.path}", flush=True)
+        raise
+
+    run_logger.finish_run()
 
     print_results(results, args.input_len, args.horizon)
+    print(f"\nRun log written to: {run_logger.path}", flush=True)
 
 
 if __name__ == "__main__":
