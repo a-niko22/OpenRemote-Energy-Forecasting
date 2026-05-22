@@ -70,7 +70,6 @@ EXP1_RUNS = [
 
 EXP2_RUNS = [
     DeepRun("exp2a", "exp2", "configs/exp2a_decoder_only.yaml", "exp2_standard", "Exp.2.a Decoder-only Transformer"),
-    DeepRun("exp2b", "exp2", "configs/exp2b_fft_decoder.yaml", "exp2_fft", "Exp.2.b FFT Decoder Transformer"),
     DeepRun("exp2c", "exp2", "configs/exp2c_encoder_decoder.yaml", "exp2_standard", "Exp.2.c Encoder-Decoder Transformer"),
     DeepRun("exp2d", "exp2", "configs/exp2d_kernel.yaml", "exp2_kernel", "Exp.2.d Kernel Transformer"),
     DeepRun("exp2e", "exp2", "configs/exp2e_itransformer.yaml", "exp2_standard", "Exp.2.e iTransformer"),
