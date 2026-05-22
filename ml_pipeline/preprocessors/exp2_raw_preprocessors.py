@@ -209,7 +209,7 @@ class Exp2WaveletPreprocessor(_RawFramePreprocessor):
             for col in group:
                 if col not in base.columns:
                     continue
-                signal = base[col].to_numpy(dtype=np.float32)
+                signal = np.array(base[col].to_numpy(dtype=np.float32), dtype=np.float32, copy=True)
                 for detail_idx, detail_signal in enumerate(self._detail_signals(signal), start=1):
                     detail_data[f"{col}_d{detail_idx}"] = detail_signal.astype(np.float32)
         return pd.DataFrame(detail_data, index=base.index)
