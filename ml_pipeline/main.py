@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
 from pathlib import Path
@@ -12,14 +13,18 @@ if str(REPO_ROOT) not in sys.path:
 
 import argparse
 import random
+
 import numpy as np
+import pandas as pd
 
 # VERY IMPORTANT PLS DO NOT TOUCH IMPORTS: import data stack before torch/model adapters,
 # otherwise some Windows/server DLL setups can hard-crash with no Python traceback.
-from data.loader import load_dataset
+from data.loader import chronological_split, load_dataset
 
+from data.windowing import make_windows
 from pipeline.experiment import Experiment
-from pipeline.experiment_runner import ExperimentRunner
+from pipeline.experiment_runner import ExperimentRunner, _free_memory
+from pipeline.metrics import compute_metrics
 
 from test_models_and_preprocessors.identity_preprocessor import IdentityPreprocessor
 from test_models_and_preprocessors.minmax_preprocessor import MinMaxPreprocessor
@@ -40,8 +45,6 @@ def run_experiments(experiments,
                     val_ratio=0.15,
                     seed=42,
                     **fit_kwargs):
-    from data.loader import load_dataset, chronological_split
-
     random.seed(seed)
     np.random.seed(seed)
 
@@ -75,9 +78,6 @@ def _make_model(model_cls, *, seed: int, input_kind: str):
 
 def _build_exp1_block(label: str, preprocessor_factory, *,
                       input_kind: str, seed: int):
-    """Build the four Exp.1 experiments for one preprocessing strategy."""
-    # Torch-backed imports stay local so baseline/Prophet-only CLI paths do not
-    # require torch unless those experiment families are requested.
     from models.exp1_ab_models import CNNBiLSTMPipelineModel, CNNXLSTMPipelineModel
     from models.exp1_cd_models import CNNBiLSTMTransformerPipelineModel, CNNTransformerPipelineModel
 
@@ -106,7 +106,6 @@ def _build_exp1_block(label: str, preprocessor_factory, *,
 
 
 def _build_prophet_experiment(args):
-    """Build the Prophet baseline experiment for the shared pipeline runner."""
     from models.prophet_model import ProphetPipelineModel
 
     return Experiment(
@@ -120,7 +119,10 @@ def _build_prophet_experiment(args):
 
 
 def _build_exp2_experiments(args):
-    """Build the five proposal-aligned Exp.2 experiments."""
+    from preprocessors.exp2_raw_preprocessors import (
+        Exp2StandardPreprocessor,
+        Exp2WaveletPreprocessor,
+    )
     from preprocessors.kernel_feature_preprocessor import KernelFeaturePreprocessor
     from models.exp2_models import (
         DecoderOnlyTransformerPipelineModel,
@@ -130,40 +132,158 @@ def _build_exp2_experiments(args):
     )
 
     return [
-        Experiment(
-            "Exp2.a Decoder-Only Tx + Norm",
-            StandardScalerPreprocessor(),
-            _make_model(DecoderOnlyTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
-        ),
-        Experiment(
-            "Exp2.b Decoder-Only Tx + Wavelet",
-            WaveletPreprocessor(
-                wavelet_name=args.wavelet_name,
-                level=args.wavelet_level,
-                mode=args.wavelet_mode,
+        {
+            "kind": "raw",
+            "name": "Exp2.a Decoder-Only Tx + Exp2 Standard",
+            "preprocessor_factory": lambda: Exp2StandardPreprocessor(),
+            "model": _make_model(DecoderOnlyTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        },
+        {
+            "kind": "raw",
+            "name": "Exp2.b Decoder-Only Tx + Exp2 Wavelet",
+            "preprocessor_factory": lambda: Exp2WaveletPreprocessor(),
+            "model": _make_model(DecoderOnlyTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        },
+        {
+            "kind": "raw",
+            "name": "Exp2.c Encoder-Decoder Tx + Exp2 Standard",
+            "preprocessor_factory": lambda: Exp2StandardPreprocessor(),
+            "model": _make_model(EncoderDecoderTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        },
+        {
+            "kind": "windowed",
+            "experiment": Experiment(
+                "Exp2.d Kernel Tx + Kernel",
+                KernelFeaturePreprocessor(
+                    n_components=args.kernel_components,
+                    gamma=args.kernel_gamma,
+                    random_state=args.kernel_random_state,
+                ),
+                _make_model(KernelTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
             ),
-            _make_model(DecoderOnlyTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
-        ),
-        Experiment(
-            "Exp2.c Encoder-Decoder Tx + Norm",
-            StandardScalerPreprocessor(),
-            _make_model(EncoderDecoderTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
-        ),
-        Experiment(
-            "Exp2.d Kernel Tx + Kernel",
-            KernelFeaturePreprocessor(
-                n_components=args.kernel_components,
-                gamma=args.kernel_gamma,
-                random_state=args.kernel_random_state,
-            ),
-            _make_model(KernelTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
-        ),
-        Experiment(
-            "Exp2.e iTransformer + Norm",
-            StandardScalerPreprocessor(),
-            _make_model(ITransformerPipelineModel, seed=args.seed, input_kind="sequence"),
-        ),
+        },
+        {
+            "kind": "raw",
+            "name": "Exp2.e iTransformer + Exp2 Standard",
+            "preprocessor_factory": lambda: Exp2StandardPreprocessor(),
+            "model": _make_model(ITransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        },
     ]
+
+
+def _target_values(frame: pd.DataFrame, target_col: str) -> np.ndarray:
+    target = pd.to_numeric(frame[target_col], errors="coerce")
+    target = target.ffill().bfill().fillna(0.0)
+    return target.to_numpy(dtype=np.float32)
+
+
+def _frame_to_xy(transformed_frame: pd.DataFrame, source_frame: pd.DataFrame, target_col: str):
+    X = transformed_frame.to_numpy(dtype=np.float32)
+    y = _target_values(source_frame, target_col)
+    return X, y
+
+
+def _release_model(model) -> None:
+    try:
+        if hasattr(model, "model") and model.model is not None:
+            model.model.cpu()
+            model.model = None
+    except Exception:
+        pass
+    _free_memory()
+
+
+def _run_exp2_raw_experiment(run_spec, train_frame, val_frame, test_frame, *,
+                             target_col: str, input_len: int, horizon: int,
+                             **fit_kwargs):
+    preprocessor = run_spec["preprocessor_factory"]()
+    model = run_spec["model"]
+
+    preprocessor.fit(train_frame)
+    train_transformed = preprocessor.transform(train_frame)
+    val_transformed = preprocessor.transform(val_frame)
+    test_transformed = preprocessor.transform(test_frame)
+
+    X_train, y_train = _frame_to_xy(train_transformed, train_frame, target_col)
+    X_val, y_val = _frame_to_xy(val_transformed, val_frame, target_col)
+    X_test, y_test = _frame_to_xy(test_transformed, test_frame, target_col)
+
+    Xw_tr, yw_tr = make_windows(X_train, y_train, input_len, horizon)
+    Xw_val, yw_val = make_windows(X_val, y_val, input_len, horizon)
+    Xw_te, yw_te = make_windows(X_test, y_test, input_len, horizon)
+
+    model.fit(Xw_tr, yw_tr, X_val=Xw_val, y_val=yw_val, **fit_kwargs)
+    predictions = model.predict(Xw_te)
+
+    result = {
+        "experiment_name": run_spec["name"],
+        "predictions": predictions,
+        "y_test": yw_te,
+        "input_len": input_len,
+        "horizon": horizon,
+        "metrics": compute_metrics(yw_te, predictions),
+        "model_config": model.get_config(),
+        "preprocessor_config": preprocessor.get_config(),
+    }
+    _release_model(model)
+    return result
+
+
+def run_exp2_experiments(exp2_runs, args, **fit_kwargs):
+    from data.loader import chronological_split_frame, load_dataset_frame
+
+    raw_splits = None
+    normal_splits = None
+    results = []
+
+    for idx, run in enumerate(exp2_runs):
+        if run["kind"] == "raw":
+            if raw_splits is None:
+                exp2_frame = load_dataset_frame(
+                    repo_id=args.exp2_repo_id,
+                    subset=args.exp2_subset,
+                    target_col=args.exp2_target_col,
+                )
+                raw_splits = chronological_split_frame(
+                    exp2_frame,
+                    train_ratio=args.train_ratio,
+                    val_ratio=args.val_ratio,
+                )
+            print(f"\n[{idx+1}/{len(exp2_runs)}] {run['name']}", flush=True)
+            results.append(_run_exp2_raw_experiment(
+                run,
+                raw_splits[0],
+                raw_splits[1],
+                raw_splits[2],
+                target_col=args.exp2_target_col,
+                input_len=args.input_len,
+                horizon=args.horizon,
+                **fit_kwargs,
+            ))
+        else:
+            if normal_splits is None:
+                X, y = load_dataset(subset=args.subset)
+                normal_splits = chronological_split(
+                    X,
+                    y,
+                    train_ratio=args.train_ratio,
+                    val_ratio=args.val_ratio,
+                )
+            print(f"\n[{idx+1}/{len(exp2_runs)}] {run['experiment'].name}", flush=True)
+            runner = ExperimentRunner(input_len=args.input_len, horizon=args.horizon)
+            results.append(runner.run(
+                run["experiment"],
+                normal_splits[0],
+                normal_splits[1],
+                normal_splits[4],
+                normal_splits[5],
+                X_val=normal_splits[2],
+                y_val=normal_splits[3],
+                **fit_kwargs,
+            ))
+            _release_model(run["experiment"].model)
+
+    return results
 
 
 def demo():
@@ -196,12 +316,17 @@ def demo():
     parser.add_argument("--kernel-components", type=int, default=32)
     parser.add_argument("--kernel-gamma", type=float, default=1.0)
     parser.add_argument("--kernel-random-state", type=int, default=42)
+
     parser.add_argument("--prophet", action="store_true",
                         help="Run the Prophet baseline first through the shared pipeline.")
     parser.add_argument("--prophet-freq", default="h",
                         help="Pandas frequency string for Prophet's synthetic timeline.")
     parser.add_argument("--prophet-target-feature-index", type=int, default=0,
                         help="Feature index in X that contains the historical target.")
+
+    parser.add_argument("--exp2-repo-id", default="CitrusBoy/EnergyPriceForecasting")
+    parser.add_argument("--exp2-subset", default="Gas_Without_Preprocessing")
+    parser.add_argument("--exp2-target-col", default="price")
 
     args = parser.parse_args()
 
@@ -251,8 +376,11 @@ def demo():
             seed=args.seed,
         ))
 
-    if args.include_exp2:
-        experiments.extend(_build_exp2_experiments(args))
+    fit_kwargs = {
+        "epochs": args.epochs,
+        "batch_size": args.batch_size,
+        "learning_rate": args.lr,
+    }
 
     results = run_experiments(
         experiments,
@@ -262,10 +390,16 @@ def demo():
         train_ratio=args.train_ratio,
         val_ratio=args.val_ratio,
         seed=args.seed,
-        epochs=args.epochs,
-        batch_size=args.batch_size,
-        learning_rate=args.lr,
+        **fit_kwargs,
     )
+
+    if args.include_exp2:
+        results.extend(run_exp2_experiments(
+            _build_exp2_experiments(args),
+            args,
+            **fit_kwargs,
+        ))
+
     print_results(results, args.input_len, args.horizon)
 
 
