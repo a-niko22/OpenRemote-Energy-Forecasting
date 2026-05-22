@@ -104,7 +104,7 @@ class TransformerConfig:
     max_len: int = 10000
     num_decoder_layers: int | None = None
     feature_dim: int | None = None
-    fft_modes: int | None = None
+    kernel_type: str | None = None
 
 
 @dataclass

@@ -59,7 +59,7 @@ def prepare_run_config(
     if seed is not None:
         config.seed = seed
 
-    if preprocess_name not in {"norm", "wavelet", "patch", "exp2_standard", "exp2_fft", "exp2_kernel"}:
+    if preprocess_name not in {"norm", "wavelet", "patch", "exp2_standard", "exp2_kernel"}:
         raise ValueError(f"Unsupported preprocessing strategy: {preprocess_name}")
 
     return config
@@ -108,15 +108,6 @@ def run_experiment(
         from src.data.exp2_preprocessing import apply_exp2_standard_preprocessing
 
         preprocessed_frame, new_feature_cols = apply_exp2_standard_preprocessing(
-            loaded_data.frame, config.data.target_col
-        )
-        loaded_data = replace(
-            loaded_data, frame=preprocessed_frame, feature_cols=new_feature_cols
-        )
-    elif preprocess_name == "exp2_fft":
-        from src.data.exp2_fft_preprocessing import apply_exp2_fft_preprocessing
-
-        preprocessed_frame, new_feature_cols = apply_exp2_fft_preprocessing(
             loaded_data.frame, config.data.target_col
         )
         loaded_data = replace(

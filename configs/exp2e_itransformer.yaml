@@ -16,7 +16,8 @@
       "num_layers": 3,
       "dim_feedforward": 256,
       "dropout": 0.1,
-      "pool": "mean",
+      "activation": "gelu",
+      "pooling": "mean",
       "head_hidden_size": 128
     }
   }
