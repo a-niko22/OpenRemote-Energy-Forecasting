@@ -38,6 +38,38 @@ def compute_metrics(actual: pd.Series, predicted: pd.Series,
             "MAPE": round(mape, 4), "coverage_pct": round(coverage, 2)}
 
 
+def compute_baseline_metrics(actual: np.ndarray, predicted: np.ndarray) -> dict:
+    mae = float(np.mean(np.abs(actual - predicted)))
+    rmse = float(np.sqrt(np.mean((actual - predicted) ** 2)))
+    mask = actual != 0
+    mape = float(np.mean(np.abs((actual[mask] - predicted[mask]) / actual[mask])) * 100) if mask.any() else float("nan")
+    return {"MAE": round(mae, 6), "RMSE": round(rmse, 6), "MAPE": round(mape, 4)}
+
+
+def compute_naive_baselines(df: pd.DataFrame, forecast_periods: int) -> dict:
+    """Relative benchmark: persistence and seasonal-naive baselines."""
+    train = df.iloc[:-forecast_periods]
+    test_actual = df.iloc[-forecast_periods:]["y"].to_numpy()
+
+    # Persistence: repeat last training value for all steps
+    last_val = float(train["y"].iloc[-1])
+    persistence_preds = np.full(forecast_periods, last_val)
+
+    # Seasonal naive: same hour 7 days ago (168 steps); fall back to persistence if not enough data
+    seasonal_offset = 24 * 7
+    if len(train) >= seasonal_offset + forecast_periods:
+        seasonal_preds = train["y"].iloc[-(seasonal_offset + forecast_periods): -seasonal_offset if seasonal_offset > 0 else None].to_numpy()
+        if len(seasonal_preds) != forecast_periods:
+            seasonal_preds = persistence_preds
+    else:
+        seasonal_preds = persistence_preds
+
+    return {
+        "persistence": compute_baseline_metrics(test_actual, persistence_preds),
+        "seasonal_naive_7d": compute_baseline_metrics(test_actual, seasonal_preds),
+    }
+
+
 def run_benchmark(df: pd.DataFrame) -> dict:
     df = df.sort_values("ds").reset_index(drop=True)
 
@@ -77,6 +109,8 @@ def run_benchmark(df: pd.DataFrame) -> dict:
         "coverage_pct": round(float(pm["coverage"].mean()) * 100, 2),
     }
 
+    baselines = compute_naive_baselines(df, forecast_periods)
+
     return {
         "model": "prophet",
         "timestamp": datetime.now().isoformat(),
@@ -84,6 +118,7 @@ def run_benchmark(df: pd.DataFrame) -> dict:
         "forecast_horizon_hours": FORECAST_HOURS,
         "held_out_test": held_out,
         "cross_validation": cv_metrics,
+        "relative_baselines": baselines,
         "prophet_config": {
             "yearly_seasonality": True,
             "weekly_seasonality": True,
@@ -102,9 +137,14 @@ def save_benchmark(results: dict):
     print(f"Saved benchmark to {path}")
 
     csv_path = os.path.join(BENCHMARK_DIR, "results.csv")
+    baseline_flat = {}
+    for bname, bmetrics in results.get("relative_baselines", {}).items():
+        for k, v in bmetrics.items():
+            baseline_flat[f"baseline_{bname}_{k}"] = v
     row = {"model": results["model"], "timestamp": results["timestamp"],
            **{f"heldout_{k}": v for k, v in results["held_out_test"].items()},
-           **{f"cv_{k}": v for k, v in results["cross_validation"].items()}}
+           **{f"cv_{k}": v for k, v in results["cross_validation"].items()},
+           **baseline_flat}
     row_df = pd.DataFrame([row])
     if os.path.exists(csv_path):
         existing = pd.read_csv(csv_path)
@@ -125,6 +165,17 @@ def print_summary(results: dict):
     print("\n--- Cross-validation (avg) ---")
     for k, v in results["cross_validation"].items():
         print(f"  {k:<15}: {v}")
+    print("\n--- Relative baselines (held-out window) ---")
+    for baseline_name, metrics in results.get("relative_baselines", {}).items():
+        print(f"  [{baseline_name}]")
+        for k, v in metrics.items():
+            print(f"    {k:<13}: {v}")
+    prophet_mae = results["held_out_test"]["MAE"]
+    for baseline_name, metrics in results.get("relative_baselines", {}).items():
+        b_mae = metrics["MAE"]
+        if b_mae > 0:
+            improvement = (b_mae - prophet_mae) / b_mae * 100
+            print(f"  Prophet vs {baseline_name}: {improvement:+.1f}% MAE improvement")
     print()
 
 

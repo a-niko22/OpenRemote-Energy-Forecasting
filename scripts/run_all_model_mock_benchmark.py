@@ -38,6 +38,7 @@ from src.experiment import run_experiment
 from src.utils.config import build_experiment_config, load_yaml_config
 from src.utils.io import ensure_dir
 from data.loader import chronological_split
+from data.windowing import make_windows
 from models.prophet_model import ProphetPipelineModel
 from pipeline.experiment import Experiment as PipelineExperiment
 from pipeline.experiment_runner import ExperimentRunner
@@ -308,6 +309,14 @@ def _mape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return float(value)
 
 
+def _baseline_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float]:
+    err = y_true - y_pred
+    mae = float(np.mean(np.abs(err)))
+    rmse = float(np.sqrt(np.mean(err ** 2)))
+    mape = _mape(y_true, y_pred)
+    return {"MAE": round(mae, 6), "RMSE": round(rmse, 6), "MAPE": round(mape, 4)}
+
+
 def run_prophet_benchmark(mock_prophet_path: Path, benchmark_timestamp: str) -> dict[str, Any]:
     print("[RUN] prophet")
     started = time.perf_counter()
@@ -337,10 +346,18 @@ def run_prophet_benchmark(mock_prophet_path: Path, benchmark_timestamp: str) -> 
 
     heldout_mae = float(result["metrics"]["mae"])
     heldout_rmse = float(result["metrics"]["rmse"])
-    heldout_mape = _mape(
-        np.asarray(result["y_test"], dtype=np.float64),
-        np.asarray(result["predictions"], dtype=np.float64),
-    )
+    yw_te = np.asarray(result["y_test"], dtype=np.float64)
+    heldout_mape = _mape(yw_te, np.asarray(result["predictions"], dtype=np.float64))
+
+    # Relative benchmark: compute baselines on the same windowed test windows.
+    # Xw_te[:, -1, 0] = last input value per window → persistence.
+    # Xw_te[:, :48, 0] = values 168–120 h ago per window → seasonal naive (7 d).
+    Xw_te, _ = make_windows(X_te, y_te, 168, 48)
+    persistence_preds = np.repeat(Xw_te[:, -1, 0:1], 48, axis=1)
+    seasonal_preds = Xw_te[:, :48, 0]
+    baseline_persistence = _baseline_metrics(yw_te.ravel(), persistence_preds.ravel())
+    baseline_seasonal = _baseline_metrics(yw_te.ravel(), seasonal_preds.ravel())
+
     duration = round(time.perf_counter() - started, 3)
     return {
         "run_id": "prophet",
@@ -356,6 +373,12 @@ def run_prophet_benchmark(mock_prophet_path: Path, benchmark_timestamp: str) -> 
         "cv_RMSE": None,
         "cv_MAPE": None,
         "cv_coverage_pct": None,
+        "baseline_persistence_MAE": baseline_persistence["MAE"],
+        "baseline_persistence_RMSE": baseline_persistence["RMSE"],
+        "baseline_persistence_MAPE": baseline_persistence["MAPE"],
+        "baseline_seasonal_naive_7d_MAE": baseline_seasonal["MAE"],
+        "baseline_seasonal_naive_7d_RMSE": baseline_seasonal["RMSE"],
+        "baseline_seasonal_naive_7d_MAPE": baseline_seasonal["MAPE"],
         "duration_sec": duration,
         "timestamp": benchmark_timestamp,
         "data_source": str(mock_prophet_path),
