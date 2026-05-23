@@ -222,8 +222,8 @@ class XLSTMApproxCell(nn.Module):
         super().__init__()
         self.hidden_size = hidden_size
         self.projection_size = projection_size
-        self.gate_clamp = gate_clamp
-        self.stability_eps = stability_eps
+        self.gate_clamp = float(gate_clamp)
+        self.stability_eps = float(stability_eps)
 
         self.input_proj = nn.Linear(input_size, 4 * hidden_size)
         self.hidden_proj = nn.Linear(projection_size, 4 * hidden_size, bias=False)

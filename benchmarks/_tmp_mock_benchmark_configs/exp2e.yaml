@@ -1,0 +1,90 @@
+{
+  "experiment_name": "exp2e_itransformer_mock48",
+  "seed": 42,
+  "device": "auto",
+  "data": {
+    "path": "C:\\School\\OpenRemote\\OpenRemote-Energy-Forecasting\\benchmarks\\mock_data\\mock_energy_multivariate.csv",
+    "timestamp_col": "time",
+    "target_col": "price",
+    "feature_cols": null,
+    "resample_freq": null
+  },
+  "window": {
+    "lookback": 168,
+    "horizon": 48,
+    "stride": 1
+  },
+  "split": {
+    "train_ratio": 0.75,
+    "val_ratio": 0.1,
+    "test_ratio": 0.15
+  },
+  "preprocessing": {
+    "norm": {
+      "method": "standard"
+    },
+    "wavelet": {
+      "wavelet_name": "db1",
+      "level": 1,
+      "mode": "concat"
+    },
+    "patch": {
+      "patch_len": 24,
+      "patch_stride": 12
+    }
+  },
+  "model": {
+    "name": "itransformer",
+    "patch_embed_dim": 64,
+    "cnn": {
+      "conv_channels": [
+        64,
+        128
+      ],
+      "kernel_size": 3,
+      "use_pooling": false,
+      "pool_kernel": 2,
+      "activation": "relu",
+      "dropout": 0.1
+    },
+    "bilstm": {
+      "hidden_size": 128,
+      "num_layers": 2,
+      "dropout": 0.2,
+      "head_hidden_size": 128
+    },
+    "xlstm": {
+      "hidden_size": 128,
+      "num_layers": 2,
+      "dropout": 0.2,
+      "projection_size": 128,
+      "gate_clamp": 5.0,
+      "stability_eps": 1e-06,
+      "head_hidden_size": 128
+    },
+    "transformer": {
+      "d_model": 128,
+      "nhead": 4,
+      "num_layers": 3,
+      "dim_feedforward": 256,
+      "dropout": 0.1,
+      "activation": "gelu",
+      "pooling": "mean",
+      "head_hidden_size": 128
+    }
+  },
+  "training": {
+    "batch_size": 64,
+    "epochs": 1,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "patience": 6,
+    "lr_scheduler_patience": 3,
+    "lr_scheduler_factor": 0.5,
+    "grad_clip": 1.0,
+    "num_workers": 0
+  },
+  "outputs": {
+    "root_dir": "outputs\\mock_benchmark"
+  }
+}
