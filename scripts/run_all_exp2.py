@@ -15,6 +15,7 @@ from src.experiment import prepare_run_config, run_experiment, write_batch_outpu
 def main() -> None:
     runs = [
         ("configs/exp2a_decoder_only.yaml",      "exp2_standard"),
+        ("configs/exp2b_wavelet_decoder.yaml",    "exp2_wavelet"),
         ("configs/exp2c_encoder_decoder.yaml",    "exp2_standard"),
         ("configs/exp2d_kernel.yaml",             "exp2_kernel"),
         ("configs/exp2e_itransformer.yaml",       "exp2_standard"),

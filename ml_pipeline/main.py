@@ -254,9 +254,10 @@ def _build_prophet_experiment(args):
 
 
 def _build_exp2_experiments(args):
-    """Build the four proposal-aligned Exp.2 experiments."""
+    """Build the five proposal-aligned Exp.2 experiments."""
     from preprocessors.exp2_raw_preprocessors import (
         Exp2StandardPreprocessor,
+        Exp2WaveletPreprocessor,
     )
     from preprocessors.kernel_feature_preprocessor import KernelFeaturePreprocessor
     from models.exp2_models import (
@@ -271,6 +272,12 @@ def _build_exp2_experiments(args):
             "kind": "raw",
             "name": "Exp2.a Decoder-Only Tx + Exp2 Standard",
             "preprocessor_factory": lambda: Exp2StandardPreprocessor(),
+            "model": _make_model(DecoderOnlyTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
+        },
+        {
+            "kind": "raw",
+            "name": "Exp2.b Decoder-Only Tx + Exp2 Wavelet",
+            "preprocessor_factory": lambda: Exp2WaveletPreprocessor(),
             "model": _make_model(DecoderOnlyTransformerPipelineModel, seed=args.seed, input_kind="sequence"),
         },
         {
