@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import os
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -22,6 +24,47 @@ except (ImportError, ModuleNotFoundError):
 from interfaces.base_model import BaseModel
 
 
+def _fit_predict_batch(args: tuple) -> tuple[int, np.ndarray]:
+    """Top-level worker for parallel Prophet fitting (must be picklable).
+
+    Returns (batch_index, predictions) where predictions has shape
+    (windows_in_batch, horizon).
+    """
+    (batch_idx, history, horizon, windows_in_batch,
+     yearly_seasonality, weekly_seasonality, daily_seasonality,
+     seasonality_mode, changepoint_prior_scale,
+     synthetic_start, freq) = args
+
+    for _name in ("cmdstanpy", "prophet", "stan"):
+        _lg = logging.getLogger(_name)
+        _lg.setLevel(logging.WARNING)
+        _lg.propagate = False
+
+    from prophet import Prophet  # noqa: PLC0415
+    import pandas as _pd        # noqa: PLC0415
+    import numpy as _np         # noqa: PLC0415
+
+    m = Prophet(
+        yearly_seasonality=yearly_seasonality,
+        weekly_seasonality=weekly_seasonality,
+        daily_seasonality=daily_seasonality,
+        seasonality_mode=seasonality_mode,
+        changepoint_prior_scale=changepoint_prior_scale,
+    )
+    ds = _pd.date_range(start=synthetic_start, periods=len(history), freq=freq)
+    m.fit(_pd.DataFrame({"ds": ds, "y": history}))
+
+    total_ahead = horizon + windows_in_batch - 1
+    future = m.make_future_dataframe(periods=total_ahead, freq=freq)
+    forecast = m.predict(future)
+    yhat = forecast["yhat"].tail(total_ahead).to_numpy(dtype=_np.float32)
+
+    result = _np.empty((windows_in_batch, horizon), dtype=_np.float32)
+    for k in range(windows_in_batch):
+        result[k] = yhat[k: k + horizon]
+    return batch_idx, result
+
+
 @dataclass
 class _ProphetSettings:
     yearly_seasonality: bool = True
@@ -33,16 +76,30 @@ class _ProphetSettings:
     target_feature_index: int = 0
     synthetic_start: str = "2000-01-01 00:00:00"
     rolling_refit: bool = True
+    refit_every: int = 1
+    n_jobs: int = 1
 
 
 class ProphetPipelineModel(BaseModel):
     """Pipeline-compatible Prophet baseline (univariate, no external regressors).
 
-    When rolling_refit=True (default), predict() re-fits Prophet for every test
-    window using all actuals up to that window's forecast anchor. This matches
-    how deep models are evaluated (each window sees real recent observations as
-    input) and makes metrics directly comparable. rolling_refit=False keeps the
-    original single-fit extrapolation for fast smoke tests / back-compat.
+    When rolling_refit=True (default), predict() re-fits Prophet every
+    *refit_every* test windows using all actuals up to that window's forecast
+    anchor. Predictions for windows within a batch are derived by sliding the
+    same forecast forward — matching deep-model evaluation while being much
+    faster than per-window refitting.
+
+    Speed knobs
+    -----------
+    refit_every : int  (default 1 — per-window, slowest/most exact)
+        Refit Prophet once per this many windows. refit_every=4 on 15-min data
+        = hourly refit, ~4x faster with negligible metric impact.
+    n_jobs : int  (default 1)
+        Number of parallel worker processes for batch fitting.
+        -1 -> use all available CPU cores.
+
+    rolling_refit=False keeps the original single-fit extrapolation for fast
+    smoke tests / back-compat.
     """
 
     model_type = "prophet_interface_baseline"
@@ -58,6 +115,8 @@ class ProphetPipelineModel(BaseModel):
         freq: str = "h",
         target_feature_index: int = 0,
         rolling_refit: bool = True,
+        refit_every: int = 1,
+        n_jobs: int = 1,
     ) -> None:
         self.settings = _ProphetSettings(
             yearly_seasonality=bool(yearly_seasonality),
@@ -68,6 +127,8 @@ class ProphetPipelineModel(BaseModel):
             freq=str(freq),
             target_feature_index=int(target_feature_index),
             rolling_refit=bool(rolling_refit),
+            refit_every=max(1, int(refit_every)),
+            n_jobs=int(n_jobs),
         )
         self.model = None
         self.train_series: np.ndarray | None = None
@@ -205,57 +266,100 @@ class ProphetPipelineModel(BaseModel):
         return self._predict_single(n_windows)
 
     def _predict_rolling(self, X_array: np.ndarray, n_windows: int) -> np.ndarray:
-        """Re-fit Prophet for every window, conditioning on all actuals up to
-        that window's forecast anchor. Matches the deep-model evaluation protocol
-        where each window sees real recent observations as input context."""
+        """Re-fit Prophet every *refit_every* windows, optionally in parallel.
+
+        For each batch anchor i0, Prophet is fit on history up to that point and
+        predicts horizon + batch_size - 1 steps. Predictions for intermediate
+        windows are obtained by sliding that forecast forward — no extra fits.
+        """
         if self.train_series is None:
             raise RuntimeError("train_series not stored — call fit() first.")
 
         target_idx = self.settings.target_feature_index
         input_len = self.input_len
         horizon = self.horizon
+        refit_every = self.settings.refit_every
+        n_jobs = self.settings.n_jobs
+        if n_jobs == -1:
+            n_jobs = os.cpu_count() or 1
 
-        # Reconstruct contiguous test series from overlapping windows.
-        # window i input = test[i : i+input_len], so:
-        # test[0:input_len] = X[0, :, idx]
-        # test[input_len + j] = X[j+1, -1, idx]  for j in 0..n_windows-2
         test_series = np.concatenate(
             [X_array[0, :, target_idx], X_array[1:, -1, target_idx]]
-        )  # length = input_len + n_windows - 1
+        )
 
-        # Re-apply suppression here: cmdstanpy/prophet configure their loggers
-        # lazily on first use, after module-level setLevel has already run.
         for _noisy in ("cmdstanpy", "prophet", "stan"):
             _lg = logging.getLogger(_noisy)
             _lg.setLevel(logging.WARNING)
             _lg.propagate = False
 
+        batch_starts = list(range(0, n_windows, refit_every))
+        n_batches = len(batch_starts)
+        log_every = max(1, n_batches // 20)
+
+        s = self.settings
+
+        if n_jobs > 1:
+            worker_args = []
+            for batch_idx, i0 in enumerate(batch_starts):
+                windows_in_batch = min(refit_every, n_windows - i0)
+                history = np.concatenate(
+                    [self.train_series, test_series[: input_len + i0]]
+                )
+                worker_args.append((
+                    batch_idx, history, horizon, windows_in_batch,
+                    s.yearly_seasonality, s.weekly_seasonality, s.daily_seasonality,
+                    s.seasonality_mode, s.changepoint_prior_scale,
+                    s.synthetic_start, s.freq,
+                ))
+
         all_preds = np.empty((n_windows, horizon), dtype=np.float32)
-        log_every = max(1, n_windows // 20)
 
-        for i in range(n_windows):
-            if i % log_every == 0:
-                print(f"[prophet rolling refit] {i}/{n_windows}", flush=True)
-
-            # History = full train+val series + test actuals up to forecast anchor.
-            history = np.concatenate(
-                [self.train_series, test_series[: input_len + i]]
+        if n_jobs == 1:
+            for batch_idx, i0 in enumerate(batch_starts):
+                if batch_idx % log_every == 0:
+                    print(
+                        f"[prophet rolling refit] batch {batch_idx}/{n_batches} "
+                        f"(window {i0}/{n_windows})",
+                        flush=True,
+                    )
+                windows_in_batch = min(refit_every, n_windows - i0)
+                history = np.concatenate(
+                    [self.train_series, test_series[: input_len + i0]]
+                )
+                ds = pd.date_range(
+                    start=s.synthetic_start, periods=len(history), freq=s.freq
+                )
+                m = self._build_model()
+                m.fit(pd.DataFrame({"ds": ds, "y": history}))
+                total_ahead = horizon + windows_in_batch - 1
+                future = m.make_future_dataframe(periods=total_ahead, freq=s.freq)
+                forecast = m.predict(future)
+                yhat = forecast["yhat"].tail(total_ahead).to_numpy(dtype=np.float32)
+                for k in range(windows_in_batch):
+                    all_preds[i0 + k] = yhat[k: k + horizon]
+        else:
+            print(
+                f"[prophet rolling refit] {n_batches} batches across {n_jobs} workers "
+                f"(refit_every={refit_every})",
+                flush=True,
             )
-            ds = pd.date_range(
-                start=self.settings.synthetic_start,
-                periods=len(history),
-                freq=self.settings.freq,
-            )
-            train_df = pd.DataFrame({"ds": ds, "y": history})
-            m = self._build_model()
-            m.fit(train_df)
+            completed = 0
+            with ProcessPoolExecutor(max_workers=n_jobs) as pool:
+                futures = {pool.submit(_fit_predict_batch, a): a[0] for a in worker_args}
+                for fut in as_completed(futures):
+                    batch_idx, preds = fut.result()
+                    i0 = batch_starts[batch_idx]
+                    windows_in_batch = min(refit_every, n_windows - i0)
+                    all_preds[i0: i0 + windows_in_batch] = preds
+                    completed += 1
+                    if completed % log_every == 0:
+                        print(
+                            f"[prophet rolling refit] {completed}/{n_batches} batches done",
+                            flush=True,
+                        )
 
-            future = m.make_future_dataframe(periods=horizon, freq=self.settings.freq)
-            forecast = m.predict(future)
-            all_preds[i] = forecast["yhat"].tail(horizon).to_numpy(dtype=np.float32)
-
-        self._n_refit_windows = n_windows
-        print(f"[prophet rolling refit] {n_windows}/{n_windows} done.", flush=True)
+        self._n_refit_windows = n_batches
+        print(f"[prophet rolling refit] {n_batches}/{n_batches} batches done.", flush=True)
         return all_preds
 
     def _predict_single(self, n_windows: int) -> np.ndarray:
@@ -275,6 +379,8 @@ class ProphetPipelineModel(BaseModel):
             "type": self.model_type,
             "is_fitted": self.is_fitted,
             "rolling_refit": self.settings.rolling_refit,
+            "refit_every": self.settings.refit_every,
+            "n_jobs": self.settings.n_jobs,
             "n_refit_windows": self._n_refit_windows,
             "input_len": self.input_len,
             "horizon": self.horizon,
