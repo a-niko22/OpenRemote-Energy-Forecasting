@@ -249,6 +249,8 @@ def _build_prophet_experiment(args):
         ProphetPipelineModel(
             target_feature_index=args.prophet_target_feature_index,
             freq=args.prophet_freq,
+            refit_every=args.prophet_refit_every,
+            n_jobs=args.prophet_n_jobs,
         ),
     )
 
@@ -528,6 +530,11 @@ def demo():
                         help="Pandas frequency string for Prophet's synthetic timeline.")
     parser.add_argument("--prophet-target-feature-index", type=int, default=0,
                         help="Feature index in X that contains the historical target.")
+    parser.add_argument("--prophet-refit-every", type=int, default=1,
+                        help="Refit Prophet once per N test windows (refit_every=4 on 15-min "
+                             "data = hourly refit, ~4x faster with negligible metric impact).")
+    parser.add_argument("--prophet-n-jobs", type=int, default=1,
+                        help="Parallel worker processes for Prophet batch fitting (-1 = all cores).")
 
     parser.add_argument("--exp2-repo-id", default="CitrusBoy/EnergyPriceForecasting")
     parser.add_argument("--exp2-subset", default="Gas_Without_Preprocessing")
