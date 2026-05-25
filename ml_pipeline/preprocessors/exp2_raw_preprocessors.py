@@ -170,17 +170,30 @@ class Exp2WaveletPreprocessor(_RawFramePreprocessor):
         ["total_load", "generation_forecast", "Price", "High", "Low", "Change %", "price"],
     ]
 
+    # Per teammate band analysis: only keep detail bands that show real structure.
+    # Features absent from this map emit no detail bands.
+    _default_band_selection: dict[str, tuple[int, ...]] = {
+        "temperature_2m": (2, 3),
+        "shortwave_radiation": (2, 3),
+        "total_load": (3,),
+        "generation_forecast": (3,),
+    }
+
     def __init__(
         self,
         time_col: str = "time",
         wavelet_name: str = "sym4",
         level: int = 3,
         dimension_groups: Iterable[Iterable[str]] | None = None,
+        band_selection: dict[str, tuple[int, ...]] | None = None,
     ):
         super().__init__(time_col=time_col)
         self.wavelet_name = wavelet_name
         self.level = int(level)
         self.dimension_groups = [list(group) for group in (dimension_groups or self._dimension_groups)]
+        self.band_selection: dict[str, tuple[int, ...]] = (
+            band_selection if band_selection is not None else self._default_band_selection
+        )
         self.detail_columns_: list[str] | None = None
         self.detail_scaler_: _StandardScaleStats | None = None
 
@@ -209,9 +222,13 @@ class Exp2WaveletPreprocessor(_RawFramePreprocessor):
             for col in group:
                 if col not in base.columns:
                     continue
+                keep = self.band_selection.get(col)
+                if not keep:
+                    continue
                 signal = np.array(base[col].to_numpy(dtype=np.float32), dtype=np.float32, copy=True)
                 for detail_idx, detail_signal in enumerate(self._detail_signals(signal), start=1):
-                    detail_data[f"{col}_d{detail_idx}"] = detail_signal.astype(np.float32)
+                    if detail_idx in keep:
+                        detail_data[f"{col}_d{detail_idx}"] = detail_signal.astype(np.float32)
         return pd.DataFrame(detail_data, index=base.index)
 
     def _detail_signals(self, signal: np.ndarray) -> list[np.ndarray]:
@@ -242,6 +259,7 @@ class Exp2WaveletPreprocessor(_RawFramePreprocessor):
             "time_col": self.time_col,
             "wavelet_name": self.wavelet_name,
             "level": self.level,
+            "band_selection": {k: list(v) for k, v in self.band_selection.items()},
             "columns": self.columns_,
             "detail_columns": self.detail_columns_,
         }
