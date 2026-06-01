@@ -47,7 +47,8 @@ class DWTPreprocessor(BasePreprocessor):
         for group in self._dimensionGroups:
             for col in group:
                 if col in df.columns:
-                    coeffs = wavedec(df[col].values, 'sym4', 'symmetric', level=3)
+                    data = df[col].values.copy()
+                    coeffs = wavedec(data, 'sym4', 'symmetric', level=3)
 
                     scaler = StandardScaler()
 
