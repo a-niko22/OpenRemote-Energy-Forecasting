@@ -1,7 +1,7 @@
-PWD /home/citrusboy/Documents/OpenRemote-Energy-Forecasting/research/paper
+PWD /home/citrusboy/Projects/OpenRemote-Energy-Forecasting/research/paper
 INPUT /usr/share/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
-INPUT /home/citrusboy/Documents/OpenRemote-Energy-Forecasting/research/paper/main.tex
+INPUT /home/citrusboy/Projects/OpenRemote-Energy-Forecasting/research/paper/main.tex
 OUTPUT main.log
 INPUT ./styledarticle.cls
 INPUT styledarticle.cls
@@ -522,6 +522,12 @@ INPUT Sections/../Figures/temperatureDecomposition.pgf
 INPUT /usr/share/texmf-dist/fonts/tfm/jknappen/ec/ecrm0700.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/jknappen/ec/ecrm0800.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/jknappen/ec/ecrm0600.tfm
+INPUT ./Sections/Results.tex
+INPUT ./Sections/Results.tex
+INPUT Sections/Results.tex
+INPUT ./Sections/Results.tex
+INPUT ./Sections/Results.tex
+INPUT Sections/Results.tex
 INPUT ./main.bbl
 INPUT ./main.bbl
 INPUT main.bbl
