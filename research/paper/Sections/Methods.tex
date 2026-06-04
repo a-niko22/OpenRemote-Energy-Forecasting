@@ -143,7 +143,7 @@ This scaling technique is used for date and time, and its purpose is to enforce 
 This is one of the valid methods for processing date and time columns for time-series data.
 This particular method provides cyclicality to time. Like how months, weekdays and hours are not linear but cyclical; they `reset' on every cycle. This method hightlights that property. Thusly, we extract more features out of the original date.
 
-\paragraph{Discrete Wavelet Transform}
+\subsubsection{Discrete Wavelet Transform Preprocessor (Exp.2.b)}
 A Discrete Wavelet Transform preprocessor is used for decomposing the signal into more nieche frequencies. This technique allows for nitpicking which "bands" or "signals" we want to remove, either because they capture a patter we want to obscure, or are just noise that the model can do nothing with.
 
 Initially, we wrote down in the proposal that we would use Fast Fourier Transform, but for time-series data, the wavelet transform is more useful. The amplitude of the signal is not as useful as the decomposition of said signal, since it will allow us to reduce noise for some features, while preserving the overall patterns.
@@ -219,4 +219,7 @@ Change \% & d1 & 33.381141 & -0.125729 \\
 We can read table~\ref{table:ablation} by simply looking at the column delta and understanding that the
 bigger the number is, the more benefitial it is to remove the associated band for that feature. If the number is negative,
 it means that the band is benefitial. Its worth mentioning that this method has limitations, as the base algorithm \- a Light Gradient Boosting Machine \- is a very simple model in contrast
-with our architectures. Therefore, the effects of removing a given band on this model might differ dramatically for the other models. 
+with our architectures. Therefore, the effects of removing a given band on this model might differ dramatically for the other models.
+
+\subsubsection{Kernel-based Preprocessing (Exp.2.d)}
+Exp.2.d pairs the Kernel-based Transformer with kernel-embedded feature mapping. Rather than an explicit standalone preprocessor, the kernel mechanism within the model architecture implicitly projects inputs into a higher-dimensional feature space, allowing the model to better capture linear structure in otherwise non-linear time-series signals.
