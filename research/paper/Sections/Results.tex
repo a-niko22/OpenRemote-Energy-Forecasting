@@ -1,5 +1,17 @@
 \section{Results}
 
+\subsection{Experiment 2 Preprocessing Methods}
+
+Experiment 2 uses three distinct preprocessing pipelines, each paired with specific model variants as shown in Table~\ref{tab:exp2}.
+
+\paragraph{Discrete Wavelet Transform Preprocessor (Exp.2.b)}
+The DWT preprocessor decomposes each signal feature using a Symlet-4 (\texttt{sym4}) wavelet at decomposition level 3, yielding three detail-coefficient bands ($d_1$, $d_2$, $d_3$) per feature. Each band is reconstructed via inverse DWT and standardised independently. Features are grouped by domain (meteorological vs.\ market/load) prior to decomposition. Datetime features are extracted identically to the standard preprocessor. This approach enables the model to attend to different frequency components of each signal separately, filtering noise while preserving dominant periodic patterns, as demonstrated by the ablation results in Table~\ref{table:ablation}.
+
+\paragraph{Kernel-based Preprocessing (Exp.2.d)}
+Exp.2.d pairs the Kernel-based Transformer with kernel-embedded feature mapping. Rather than an explicit standalone preprocessor, the kernel mechanism within the model architecture implicitly projects inputs into a higher-dimensional feature space, allowing the model to better capture linear structure in otherwise non-linear time-series signals.
+
+\subsection{Performance Metrics}
+
 For our performance metrics, we will assume RMSE and MAE. The difference between the two, for the purposes of this paper, is their tolerance to outlier data.
 MAE is more representative of the typical performance, while RMSE is outlier sensitive. So we could interpret a better MAE as more adapt for normal circumstances. Conversely, 
 we can interpret RMSE as a good metric for how well the models can handle outlier data.
