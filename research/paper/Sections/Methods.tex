@@ -116,3 +116,107 @@ The data is also preprocessed using the methods above. Timestamp data is feature
 \subsection{Procedure}
 All experiment models are based on the Torch library. For the preprocessing, there is a mixture of self-written methods, and some from scikit-learn and pywt, for Wavelet transform.
 They are arranged into the experiment configurations described above, and run sequentially using a custom script, that outputs the results in bulk.
+
+\subsection{Preprocessors}
+The preprocessors used in this experiment merit a section of their own, as they are an integral part of the research, and overlwhelm the project with a veneer of complexity alike the ensemble models described above.
+We will go through the main preprocessing methods, and explain what they constitute; provide a logical explanation for the methodology employed.
+Some preprocessors might discrimitate the experiment that they belong to.
+
+\subsubsection{Standard Preprocessor (EXP. 2)}
+The standard processor applies simple processing on the data. For floating points, it applies a standard scaler, and a MinMax scaler. For datetime data, it applies Cyclical Scaling.
+
+\paragraph{Standard Scaler}
+The standard scaler simply uses Standard Normal Distribution to normalise the values. This helps with uneven scales within the dataset. So the mean of each column becomes 0 and the standard deviation becomes 1. The MinMaxScaler scales the data in a max to min scale. So the minimum value is 0 (or -1 if there are negative values for that feature) and the max value becomes 1.
+
+Both are used because, while standard scaling is useful for baseline detection, the MinMax Scaler ensures that we dont lose outlier feedback.
+
+\paragraph{Cyclical Scaling}
+\begin{figure*}[htbp]
+    \centering
+    \resizebox{0.89\textwidth}{!}{
+        \input{../Figures/cyclicalScallingFig.pgf}
+    }
+    \caption{A plot of date features after being subjected to Cyclical Scalling}
+    \label{fig:cyclicalScalling}
+\end{figure*}
+This scaling technique is used for date and time, and its purpose is to enforce the circular dimention of time onto the data, using trigonometry, as presented in~\ref{fig:cyclicalScalling}.
+This is one of the valid methods for processing date and time columns for time-series data.
+This particular method provides cyclicality to time. Like how months, weekdays and hours are not linear but cyclical; they `reset' on every cycle. This method hightlights that property. Thusly, we extract more features out of the original date.
+
+\paragraph{Discrete Wavelet Transform}
+A Discrete Wavelet Transform preprocessor is used for decomposing the signal into more nieche frequencies. This technique allows for nitpicking which "bands" or "signals" we want to remove, either because they capture a patter we want to obscure, or are just noise that the model can do nothing with.
+
+Initially, we wrote down in the proposal that we would use Fast Fourier Transform, but for time-series data, the wavelet transform is more useful. The amplitude of the signal is not as useful as the decomposition of said signal, since it will allow us to reduce noise for some features, while preserving the overall patterns.
+
+\begin{figure*}[htbp]
+    \centering
+    \resizebox{0.7\textwidth}{!}{
+        \input{../Figures/temperatureOriginal.pgf}
+    }
+    \caption{A plot of the temperature over time in our dataset}\label{fig:tempOrig}
+\end{figure*}
+
+Consider Figure~\ref{fig:tempOrig}, where we can see in its totality, the temperature data in our dataset.
+Notice how there are minor imperfections in an otherwise clear periodical fluctuation. That is to be expected,
+as the Netherlands follows a pretty typical temperature cicle.
+
+\begin{figure*}[htbp]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \input{../Figures/temperatureDecomposition.pgf}
+    }
+    \caption{A plot of the temperature over time in our dataset after Wavelet decomposition}\label{fig:tempDecomp}
+\end{figure*}
+
+Now take a look at Figure~\ref{fig:tempDecomp}. The signal from earlier is now decomposed into 3 different signals, called bands.
+Band 1 (or d1) looks like a lot of noise, same as Band 2. However, Band 3 seems a little more constrained.
+Altough it clearly detects peaks, it also finds stability. That is what we are looking for when doing Wavelet analysis.
+
+Furthermore, by performing ablation\footnote{Ablation is the process of recurrently testing the same model on the same dataset, with the only difference being the removal of a given feature, for every feature in the dataset.}, we are able to get a clearer picture of the effects of each band to a potential model.
+
+\begin{tabular}{llrr}
+\toprule
+variable & band & rmse & delta \\
+\midrule
+total\_load & d2 & 33.756189 & 0.249319 \\
+generation\_forecast & d1 & 33.642795 & 0.135925 \\
+price & d1 & 33.632644 & 0.125774 \\
+temperature\_2m & d3 & 33.614782 & 0.107912 \\
+Low & d2 & 33.605844 & 0.098975 \\
+wind\_speed\_10m & d3 & 33.603512 & 0.096642 \\
+Price & d3 & 33.599684 & 0.092814 \\
+price & d2 & 33.589829 & 0.082959 \\
+cloud\_cover & d2 & 33.589608 & 0.082739 \\
+total\_load & d3 & 33.579247 & 0.072377 \\
+temperature\_2m & d2 & 33.574455 & 0.067585 \\
+shortwave\_radiation & d2 & 33.569995 & 0.063125 \\
+High & d2 & 33.561575 & 0.054705 \\
+total\_load & d1 & 33.552758 & 0.045888 \\
+Change \% & d2 & 33.546079 & 0.039209 \\
+shortwave\_radiation & d1 & 33.543296 & 0.036426 \\
+generation\_forecast & d3 & 33.535409 & 0.028539 \\
+Low & d3 & 33.533773 & 0.026903 \\
+Change \% & d3 & 33.532598 & 0.025728 \\
+cloud\_cover & d3 & 33.520752 & 0.013882 \\
+wind\_speed\_10m & d2 & 33.519621 & 0.012751 \\
+High & d3 & 33.517491 & 0.010621 \\
+High & d1 & 33.515562 & 0.008692 \\
+Low & d1 & 33.513244 & 0.006374 \\
+Price & d1 & 33.508143 & 0.001273 \\
+cloud\_cover & d1 & 33.501218 & -0.005652 \\
+temperature\_2m & d1 & 33.500676 & -0.006193 \\
+shortwave\_radiation & d3 & 33.496145 & -0.010725 \\
+generation\_forecast & d2 & 33.475815 & -0.031055 \\
+Price & d2 & 33.473631 & -0.033239 \\
+price & d3 & 33.470569 & -0.036301 \\
+wind\_speed\_10m & d1 & 33.422056 & -0.084814 \\
+Change \% & d1 & 33.381141 & -0.125729 \\
+\bottomrule\label{table:ablation}
+\end{tabular}
+\captionof{table}{A table that shows the results of the ablation test per band and feature individually}
+
+\medbreak
+We can read table~\ref{table:ablation} by simply looking at the column delta and understanding that the
+bigger the number is, the more benefitial it is to remove the associated band for that feature. If the number is negative,
+it means that the band is benefitial. Its worth mentioning that this method has limitations, as the base algorithm \- a Light Gradient Boosting Machine \- is a very simple model in contrast
+with our architectures. Therefore, the effects of removing a given band on this model might differ dramatically for the other models. 
