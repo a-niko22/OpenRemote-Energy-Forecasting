@@ -24,7 +24,7 @@ import data.loader as data_loader
 from data.windowing import make_windows
 from pipeline.experiment import Experiment
 from pipeline.experiment_runner import ExperimentRunner, _free_memory
-from pipeline.metrics import compute_metrics
+from pipeline.metrics import compute_metrics, compute_relative_baselines
 
 from test_models_and_preprocessors.identity_preprocessor import IdentityPreprocessor
 from test_models_and_preprocessors.minmax_preprocessor import MinMaxPreprocessor
@@ -124,6 +124,9 @@ class RunLogger:
         self._write(f"Input window: {result['input_len']} -> {result['horizon']}")
         self._write("Metrics:")
         self._write(pformat(result.get("metrics", {}), sort_dicts=True))
+        if result.get("relative_baselines"):
+            self._write("Relative baselines (persistence / seasonal-naive-7d):")
+            self._write(pformat(result["relative_baselines"], sort_dicts=True))
         self._write("Preprocessor config:")
         self._write(pformat(result.get("preprocessor_config", {}), sort_dicts=True))
         self._write("Model config:")
@@ -147,6 +150,10 @@ def run_experiments(experiments,
     X_tr, y_tr, X_val, y_val, X_te, y_te = data_loader.chronological_split(
         X, y, train_ratio, val_ratio
     )
+
+    # Pre-compute relative baselines once for the shared test split.
+    # Used for all non-Exp1 experiments (Prophet, Mean, Zero, MinMax).
+    _relative_baselines_cache = compute_relative_baselines(y_te, input_len, horizon)
 
     runner = ExperimentRunner(input_len=input_len, horizon=horizon)
     dataset_info = {
@@ -184,6 +191,8 @@ def run_experiments(experiments,
                 run_logger.finish_experiment(token, error=exc)
             _release_model(exp.model)
             raise
+        # Attach relative baselines for all experiments.
+        result["relative_baselines"] = _relative_baselines_cache
         results.append(result)
         if run_logger is not None and token is not None:
             run_logger.finish_experiment(token, result=result)
@@ -203,6 +212,29 @@ def print_results(results, input_len, horizon):
               f"{m['mae']:>8.3f} | "
               f"{m['rmse']:>8.3f} | "
               f"{m['peak_mae_top10']:>11.3f}")
+
+    relative_rows = [r for r in results if r.get("relative_baselines")]
+    if relative_rows:
+        print()
+        print("Relative benchmarks (model vs naive baselines)")
+        rel_header = (f"{'experiment':40} | {'model MAE':>9} | {'persist MAE':>11} | "
+                      f"{'seas-7d MAE':>11} | {'vs persist':>10} | {'vs seas-7d':>10}")
+        print(rel_header)
+        print("-" * len(rel_header))
+        for r in relative_rows:
+            m = r["metrics"]
+            rb = r["relative_baselines"]
+            model_mae = m["mae"]
+            pers_mae = rb["persistence"]["mae"]
+            seas_mae = rb["seasonal_naive_7d"]["mae"]
+            vs_pers = pers_mae - model_mae
+            vs_seas = seas_mae - model_mae
+            print(f"{r['experiment_name']:40} | "
+                  f"{model_mae:>9.3f} | "
+                  f"{pers_mae:>11.3f} | "
+                  f"{seas_mae:>11.3f} | "
+                  f"{vs_pers:>+10.3f} | "
+                  f"{vs_seas:>+10.3f}")
 
 
 def _make_model(model_cls, *, seed: int, input_kind: str):
@@ -374,6 +406,9 @@ def run_exp2_experiments(exp2_runs, args, **fit_kwargs):
     normal_splits = None
     normal_dataset_info = None
     results = []
+    # Cache relative baselines per dataset so they are computed once per split.
+    _raw_relative_baselines = None
+    _normal_relative_baselines = None
 
     for idx, run in enumerate(exp2_runs):
         if run["kind"] == "raw":
@@ -431,6 +466,13 @@ def run_exp2_experiments(exp2_runs, args, **fit_kwargs):
                     run_logger.finish_experiment(token, error=exc)
                 _release_model(run["model"])
                 raise
+            # Attach relative baselines (computed once, cached for all raw Exp2 runs).
+            if _raw_relative_baselines is None:
+                raw_y_te = _target_values(raw_splits[2], args.exp2_target_col)
+                _raw_relative_baselines = compute_relative_baselines(
+                    raw_y_te, args.input_len, args.horizon
+                )
+            result["relative_baselines"] = _raw_relative_baselines
             results.append(result)
             if run_logger is not None and token is not None:
                 run_logger.finish_experiment(token, result=result)
@@ -485,6 +527,12 @@ def run_exp2_experiments(exp2_runs, args, **fit_kwargs):
                     run_logger.finish_experiment(token, error=exc)
                 _release_model(run["experiment"].model)
                 raise
+            # Attach relative baselines for the windowed (kernel) Exp2 run.
+            if _normal_relative_baselines is None:
+                _normal_relative_baselines = compute_relative_baselines(
+                    normal_splits[5], args.input_len, args.horizon
+                )
+            result["relative_baselines"] = _normal_relative_baselines
             results.append(result)
             if run_logger is not None and token is not None:
                 run_logger.finish_experiment(token, result=result)
