@@ -18,7 +18,7 @@
 \everymath=\expandafter{\the\everymath\displaystyle}
 
 \title{Energy Price Prediction using Transformer Architecture}
-\author{Guilherme Oliveira}
+\author{Guilherme Oliveira} % You can add yourself by adding \and {your name} e.g. \author{Guilherme Oliveira \and Joe Doe}
 \date{}
 
 \begin{document}
@@ -27,7 +27,10 @@
 
 \begin{multicols*}{2}
     \begin{abstract}
-        Nothing here yet
+        OpenRemote is a player in the asset management game, with a focus on energy-related assets. For its costumers, a fine-grained knowledge of energy prices would open the doors for price optimisation.
+        OpenRemote's current solution, that uses the Prophet model, is able to capture Min and Max levels with relative accuracy, but falls short on the daily variations in the baseline, due to its deterministic model architecture.
+        This research aims to test multiple neural network architectures in search for one that can beat the Prophet model.
+        Our findings show that the iTransformer architecture, along with other Transformer models, perform best at Energy Price Prediction.
     \end{abstract}
 
     \import{Sections/}{Intro}
@@ -35,6 +38,14 @@
     \import{Sections/}{Methods}
 
     \import{Sections/}{Results}
+
+    \import{Sections/}{Discussion}
+
+    \import{Sections/}{Conclusion}
+
+    \section{Limitations}
+        This work is limited by the size of the group, and the experience with the field of research explored in this project, being the field of AI. The quality of this work is impacted by this factor, and it should not be downplayed.
+        Time has also been a limiting factor. Different team members had differing availabilities, but the nature of the semester also limits the capacity for actual work. An example of this is the time that it takes to document, validate, and upkeep our portfolios.
 \end{multicols*}
 
 \bibliographystyle{plain}

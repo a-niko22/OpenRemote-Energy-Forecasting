@@ -144,7 +144,7 @@ This is one of the valid methods for processing date and time columns for time-s
 This particular method provides cyclicality to time. Like how months, weekdays and hours are not linear but cyclical; they `reset' on every cycle. This method hightlights that property. Thusly, we extract more features out of the original date.
 
 \subsubsection{Discrete Wavelet Transform Preprocessor (Exp.2.b)}
-A Discrete Wavelet Transform preprocessor is used for decomposing the signal into more nieche frequencies. This technique allows for nitpicking which "bands" or "signals" we want to remove, either because they capture a patter we want to obscure, or are just noise that the model can do nothing with.
+A Discrete Wavelet Transform preprocessor is used for decomposing the signal into more nieche frequencies. This technique allows for nitpicking which `bands' or `signals' we want to remove, either because they capture a pattern we want to obscure, or are just noise that the model can do nothing with.
 
 Initially, we wrote down in the proposal that we would use Fast Fourier Transform, but for time-series data, the wavelet transform is more useful. The amplitude of the signal is not as useful as the decomposition of said signal, since it will allow us to reduce noise for some features, while preserving the overall patterns.
 
@@ -173,7 +173,7 @@ Band 1 (or d1) looks like a lot of noise, same as Band 2. However, Band 3 seems 
 Altough it clearly detects peaks, it also finds stability. That is what we are looking for when doing Wavelet analysis.
 
 Furthermore, by performing ablation\footnote{Ablation is the process of recurrently testing the same model on the same dataset, with the only difference being the removal of a given feature, for every feature in the dataset.}, we are able to get a clearer picture of the effects of each band to a potential model.
-
+\resizebox{\columnwidth}{!}{
 \begin{tabular}{llrr}
 \toprule
 variable & band & rmse & delta \\
@@ -213,6 +213,7 @@ wind\_speed\_10m & d1 & 33.422056 & -0.084814 \\
 Change \% & d1 & 33.381141 & -0.125729 \\
 \bottomrule\label{table:ablation}
 \end{tabular}
+}
 \captionof{table}{A table that shows the results of the ablation test per band and feature individually}
 
 \medbreak

@@ -1,0 +1,7 @@
+\section{Conclusion}
+
+OpenRemote is looking for a better model that can predict energy prices more accurately, with emphasis on the small daily variations.
+This research aims to test multiple neural network techniques and bruteforce a model that would beat OpenRemote's current implementation, which is the Prophet model, utilising neural networks, which produce models with a less deterministic profile.
+Multiple experiments were set up, containing deviations in between them, architeture-wise and in the preprocessors used. Experiment 1 looks into classic neural networks, proved to work for time-series data, and Experiment 2 focuses on Transformer models.
+The results favour significantly the Transformer models, which boast improvements upwards of 16.6\% and 15.3\% for RMSE and MAE respectively. The best model architecture uses an iTransformer, which achieved an RMSE of 42.7 and a MAE of 30.2.
+Improvements in feature engineering and the preprocessor techniques could improve model performance in future works.

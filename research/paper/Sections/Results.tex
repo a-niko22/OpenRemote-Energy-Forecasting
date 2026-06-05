@@ -3,9 +3,11 @@
 For our performance metrics, we will assume RMSE and MAE. The difference between the two, for the purposes of this paper, is their tolerance to outlier data.
 MAE is more representative of the typical performance, while RMSE is outlier sensitive. So we could interpret a better MAE as more adapt for normal circumstances. Conversely, 
 we can interpret RMSE as a good metric for how well the models can handle outlier data.
+
+Furthermore, all the experiment were run on 100 epochs.
 \begin{table*}[ht]
 \centering
-\caption{Table with the results of the experiments, including the Proton model}
+\caption{Table with the results of the experiments, including the Prophet model}
 \begin{tabular}{|l|l|l|l|}
     \hline
     \textbf{run\_title} & \textbf{duration\_hhmmss} & \textbf{mae} & \textbf{rmse} \\ \hline
@@ -32,3 +34,10 @@ we can interpret RMSE as a good metric for how well the models can handle outlie
     Exp2.e iTransformer + Exp2 Standard & 00:07:32 & \textbf{30.210997} & \textbf{42.766888} \\ \hline
 \end{tabular}\label{table:results}
 \end{table*}
+
+The results determine that Experiment 2 and Experiment 1.d outperform the Prophet model, as shown in Table~\ref{table:results}, with the results above the baseline highlighted in bold.
+The improvementes range from 1.7\% to 16.6\% for RMSE and 1.4\% to 15.3\% for MAE. However, most experiments failed to go past the threshold, especially those who did not feature a transformer model. It is also worth pointing out that Exp1.b and Exp1.c
+only differ in their inclusion of the RNN component (it being the BiLSTM). The experiment without it performed better, beating the baseline.
+
+There is also an observable difference in the performance of the preprocessors. The preprocessor that performs the best is the Standard preprocessor for Exp2, which averages to 44.3 RMSE, followed by Wavelet with 51.1 averafe RMSE. This difference of 6.8\% is statistically significant (p = 0.014).
+The Kernel variant also performed rather well, tho it only has 1 datapoint.
