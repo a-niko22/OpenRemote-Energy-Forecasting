@@ -26,9 +26,9 @@ import joblib
 import numpy as np
 import torch
 
-REPO_ID = "CitrusBoy/exp2c-energy-forecaster"
+REPO_ID = "Nazim112/nl-energy-forecaster"
 INPUT_LEN = 168
-HORIZON = 24
+HORIZON = 48
 
 FEATURE_COLS = [
     "temperature_2m",
