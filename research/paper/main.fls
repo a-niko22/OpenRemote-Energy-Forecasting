@@ -1,7 +1,7 @@
-PWD /home/citrusboy/Projects/OpenRemote-Energy-Forecasting/research/paper
+PWD /home/citrusboy/Documents/OpenRemote-Energy-Forecasting/research/paper
 INPUT /usr/share/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
-INPUT /home/citrusboy/Projects/OpenRemote-Energy-Forecasting/research/paper/main.tex
+INPUT /home/citrusboy/Documents/OpenRemote-Energy-Forecasting/research/paper/main.tex
 OUTPUT main.log
 INPUT ./styledarticle.cls
 INPUT styledarticle.cls
@@ -453,6 +453,8 @@ INPUT ./Sections/Methods.tex
 INPUT ./Sections/Methods.tex
 INPUT Sections/Methods.tex
 INPUT /usr/share/texmf-dist/fonts/tfm/jknappen/ec/ecsx1200.tfm
+INPUT /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map
+INPUT /usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc
 INPUT /usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
@@ -464,8 +466,6 @@ INPUT /usr/share/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm5.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/jknappen/ec/ecbx1200.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/jknappen/ec/ecrm1440.tfm
 INPUT /usr/share/texmf-dist/fonts/tfm/jknappen/ec/ecbx1440.tfm
-INPUT /var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map
-INPUT /usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc
 INPUT ./Sections/../Figures/cyclicalScallingFig.pgf
 INPUT Sections/../Figures/cyclicalScallingFig.pgf
 INPUT ./Sections/../Figures/cyclicalScallingFig.pgf
@@ -528,6 +528,18 @@ INPUT Sections/Results.tex
 INPUT ./Sections/Results.tex
 INPUT ./Sections/Results.tex
 INPUT Sections/Results.tex
+INPUT ./Sections/Discussion.tex
+INPUT ./Sections/Discussion.tex
+INPUT Sections/Discussion.tex
+INPUT ./Sections/Discussion.tex
+INPUT ./Sections/Discussion.tex
+INPUT Sections/Discussion.tex
+INPUT ./Sections/Conclusion.tex
+INPUT ./Sections/Conclusion.tex
+INPUT Sections/Conclusion.tex
+INPUT ./Sections/Conclusion.tex
+INPUT ./Sections/Conclusion.tex
+INPUT Sections/Conclusion.tex
 INPUT ./main.bbl
 INPUT ./main.bbl
 INPUT main.bbl

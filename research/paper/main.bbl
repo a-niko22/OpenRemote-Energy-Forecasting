@@ -102,4 +102,9 @@ Kyrylo Yemets, Ivan Izonin, and Ivanna Dronyuk.
 \newblock Time series forecasting model based on the adapted transformer neural network and fft-based features extraction.
 \newblock {\em Sensors}, 25(3):652, January 2025.
 
+\bibitem{10877800}
+Seokbin Yoon and Keumjin Lee.
+\newblock Aircraft trajectory prediction with inverted transformer.
+\newblock {\em IEEE Access}, 13:26318--26330, 2025.
+
 \end{thebibliography}
