@@ -35,7 +35,13 @@ def main() -> None:
 
     if output_root is None:
         raise RuntimeError("Batch runner did not resolve any output root.")
-    write_batch_outputs(results, output_root=output_root)
+    write_batch_outputs(
+        results,
+        output_root=output_root,
+        summary_stem="exp2_results",
+        summary_title="Experiment 2 Batch Summary",
+        summary_description="This summary covers the assigned Experiment 2 Transformer runs.",
+    )
     print(results)
 
 

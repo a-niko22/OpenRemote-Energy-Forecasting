@@ -36,13 +36,18 @@ def write_run_summary(
     output_path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def write_batch_summary(output_path: Path, results: Iterable[dict[str, object]]) -> None:
-    """Write a markdown batch summary for all six runs."""
+def write_batch_summary(
+    output_path: Path,
+    results: Iterable[dict[str, object]],
+    title: str = "Experiment Batch Summary",
+    description: str = "This summary covers the assigned experiment runs.",
+) -> None:
+    """Write a markdown batch summary for a group of runs."""
     frame = pd.DataFrame(results)
     lines = [
-        "# Experiment 1.a / 1.b Batch Summary",
+        f"# {title}",
         "",
-        "This summary covers the six assigned Experiment 1 runs only.",
+        description,
         "",
         "| Experiment | Preprocess | Test MAE | Test RMSE | Test MAPE |",
         "| --- | --- | ---: | ---: | ---: |",

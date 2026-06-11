@@ -282,13 +282,24 @@ def run_experiment(
     return result
 
 
-def write_batch_outputs(results: list[dict[str, Any]], output_root: str | Path) -> None:
-    """Persist batch summary outputs after all six runs succeed."""
+def write_batch_outputs(
+    results: list[dict[str, Any]],
+    output_root: str | Path,
+    summary_stem: str = "experiment_results",
+    summary_title: str = "Experiment Batch Summary",
+    summary_description: str = "This summary covers the assigned experiment runs.",
+) -> None:
+    """Persist batch summary outputs after all runs succeed."""
     summary_dir = ensure_dir(Path(output_root) / "summary")
     summary_frame = pd.DataFrame(results).sort_values(["experiment_name", "preprocess"])
-    save_dataframe(summary_frame, summary_dir / "exp1_ab_results.csv")
+    save_dataframe(summary_frame, summary_dir / f"{summary_stem}.csv")
     save_json(
-        summary_frame.to_dict(orient="records"), summary_dir / "exp1_ab_results.json"
+        summary_frame.to_dict(orient="records"), summary_dir / f"{summary_stem}.json"
     )
-    plot_batch_comparison(summary_frame, summary_dir / "exp1_ab_comparison.png")
-    write_batch_summary(summary_dir / "exp1_ab_summary.md", results)
+    plot_batch_comparison(summary_frame, summary_dir / f"{summary_stem}_comparison.png")
+    write_batch_summary(
+        summary_dir / f"{summary_stem}_summary.md",
+        results,
+        title=summary_title,
+        description=summary_description,
+    )

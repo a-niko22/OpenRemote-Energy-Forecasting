@@ -88,17 +88,19 @@ async def forecast(req: ForecastRequest):
 
     context = torch.tensor([req.prices], dtype=torch.float32)  # [1, context_len]
 
-    # predict returns [num_series, num_samples, prediction_length]
-    samples_tensor = pipeline.predict(
-        context=context,
+    # ChronosBoltPipeline returns quantile forecasts, not samples.
+    # Shape: [num_series, num_quantile_levels, prediction_length]
+    # context must be passed positionally — it is not a keyword argument in this API.
+    forecast_tensor = pipeline.predict(
+        context,
         prediction_length=48,
-        num_samples=20,
     )
 
-    samples = samples_tensor[0].numpy()  # [20, 48]
-    mean = samples.mean(axis=0)
-    low = np.percentile(samples, 10, axis=0)
-    high = np.percentile(samples, 90, axis=0)
+    q = forecast_tensor[0].numpy()  # [num_quantile_levels, 48]
+    mid = len(q) // 2
+    mean = q[mid]   # median quantile as point forecast
+    low  = q[0]     # lowest quantile (~p10)
+    high = q[-1]    # highest quantile (~p90)
 
     entries = [
         HourEntry(

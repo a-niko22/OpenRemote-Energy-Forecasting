@@ -136,19 +136,30 @@ function setWindow(days) {
 async function fetchDataset() {
   setStatus('Fetching dataset from HuggingFace…', 'loading');
 
-  // offset=93000 targets the tail of the CitrusBoy/EnergyPriceForecasting Gas split
-  // (~95 k rows total as of dataset v1). This is a static offset: if the dataset grows
-  // a dynamic approach (fetch total row count first, then offset = total - 2000) would
-  // be more reliable but costs an extra round-trip. Revisit if rows shift noticeably.
-  const url =
-    'https://datasets-server.huggingface.co/rows' +
-    '?dataset=CitrusBoy%2FEnergyPriceForecasting&config=Gas&split=train' +
-    '&offset=93000&length=2000';
+  const BASE   = 'https://datasets-server.huggingface.co';
+  const PARAMS = 'dataset=CitrusBoy%2FEnergyPriceForecasting&config=Gas&split=train';
+  const BATCH  = 100; // HuggingFace rows API hard limit per request
+  const WANT   = 400; // covers 14-day chart window (336 h) + buffer
 
-  const r = await fetch(url);
-  if (!r.ok) throw new Error('HuggingFace fetch failed: ' + r.status);
-  const json = await r.json();
-  return json.rows.map(row => row.row).filter(r => r.time && r.price != null);
+  // Discover total rows so we can anchor to the tail of the dataset.
+  const infoR = await fetch(`${BASE}/info?dataset=CitrusBoy%2FEnergyPriceForecasting&config=Gas`);
+  if (!infoR.ok) throw new Error('HuggingFace info fetch failed: ' + infoR.status);
+  const info  = await infoR.json();
+  const total = info.dataset_info?.splits?.train?.num_examples ?? 96100;
+
+  const startOffset = Math.max(0, total - WANT);
+  const requests = [];
+  for (let off = startOffset; off < total; off += BATCH) {
+    const length = Math.min(BATCH, total - off);
+    requests.push(
+      fetch(`${BASE}/rows?${PARAMS}&offset=${off}&length=${length}`)
+        .then(r => { if (!r.ok) throw new Error('HuggingFace fetch failed: ' + r.status); return r.json(); })
+        .then(j => j.rows.map(r => r.row))
+    );
+  }
+
+  const batches = await Promise.all(requests);
+  return batches.flat().filter(r => r.time && r.price != null);
 }
 
 function computeMetrics(data) {
