@@ -7,7 +7,8 @@ This implementation covers only the assigned Experiment 1 variants:
 - Exp.1.a: CNN-BiLSTM
 - Exp.1.b: CNN-xLSTM
 
-The following variants are intentionally excluded:
+The following variants were intentionally excluded from this historical
+Exp.1.a/b results batch:
 
 - Exp.1.c: CNN-BiLSTM-Transformer
 - Exp.1.d: CNN-Transformer
@@ -100,13 +101,15 @@ The batch runner also writes:
 - The wavelet preprocessing is intentionally lightweight rather than highly specialized.
 - No hyperparameter search is included in this baseline.
 
-## Extension Path for Exp.1.c and Exp.1.d
+## Exp.1.c and Exp.1.d Pipeline Integration
 
-Another teammate can extend this baseline later by:
+Exp.1.c and Exp.1.d now have `ml_pipeline`-compatible wrappers under
+`ml_pipeline/models/exp1_cd_models.py`. The original PyTorch modules and
+standalone config-based scripts remain available for local validation, while
+the shared pipeline can instantiate:
 
-1. adding new model classes under `src/models/`
-2. creating new config files under `configs/`
-3. reusing the same data pipeline, preprocessing strategies, trainer, evaluator, and batch summary utilities
-4. adding the new runs to a separate batch script or extending the existing runner after team coordination
+1. `CNNBiLSTMTransformerPipelineModel`
+2. `CNNTransformerPipelineModel`
 
-This keeps the current scope isolated while still making the code easy to extend.
+This keeps the historical Exp.1.a/b result scope isolated without implying that
+Exp.1.c/d are permanently excluded from the shared pipeline.

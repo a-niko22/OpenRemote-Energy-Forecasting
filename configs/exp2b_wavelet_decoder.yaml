@@ -1,6 +1,6 @@
 {
   "base_config": "base.yaml",
-  "experiment_name": "exp2b_fft_decoder",
+  "experiment_name": "exp2b_wavelet_decoder",
   "data": {
     "path": "hf://datasets/CitrusBoy/EnergyPriceForecasting/final_dataset_full_clean_with_gas_no_processing.csv",
     "timestamp_col": "time",
@@ -9,7 +9,7 @@
     "resample_freq": null
   },
   "model": {
-    "name": "fft_decoder_transformer",
+    "name": "decoder_only_transformer",
     "transformer": {
       "d_model": 128,
       "nhead": 4,
@@ -17,10 +17,9 @@
       "num_decoder_layers": 3,
       "dim_feedforward": 256,
       "dropout": 0.1,
-      "pool": "last",
-      "head_hidden_size": 128,
-      "fft_modes": 32,
-      "fft_kind": "rfft"
+      "activation": "gelu",
+      "pooling": "last",
+      "head_hidden_size": 128
     }
   }
 }

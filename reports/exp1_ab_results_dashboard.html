@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exp.1.a / Exp.1.b Forecasting Results</title>
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --ink: #18201d;
+      --muted: #64706b;
+      --line: #d8d0c4;
+      --panel: #fffdf8;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --accent-3: #9f1239;
+      --shadow: 0 18px 45px rgba(24, 32, 29, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Aptos", "Segoe UI", Tahoma, sans-serif;
+      line-height: 1.5;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(120deg, #fffdf8 0%, #edf4ef 54%, #f7eadb 100%);
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 48px 0 34px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 920px;
+      margin: 0;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 820px;
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.72);
+      padding: 8px 11px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    main {
+      padding: 30px 0 56px;
+    }
+
+    section {
+      margin-top: 28px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .metric-label {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .metric-value {
+      margin: 0;
+      font-size: 31px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .metric-note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: middle;
+      font-size: 14px;
+    }
+
+    th {
+      background: #ebe5da;
+      color: #2b3430;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .number {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .winner {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 180px 1fr 72px;
+      gap: 12px;
+      align-items: center;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+
+    .bar-bg {
+      height: 13px;
+      border-radius: 999px;
+      background: #e4ded4;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+    }
+
+    .bar.xlstm {
+      background: var(--accent-2);
+    }
+
+    .bar.patch {
+      background: var(--accent-3);
+    }
+
+    .chart-note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .plot-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    figure {
+      margin: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    figcaption {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 800;
+      font-size: 14px;
+      background: #fff8ec;
+    }
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .note {
+      border-left: 4px solid var(--accent-2);
+      background: #fff8ec;
+      padding: 14px 16px;
+      color: #43362b;
+      border-radius: 6px;
+    }
+
+    a {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    @media (max-width: 860px) {
+      .grid.three,
+      .grid.two,
+      .plot-pair {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .number {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap hero">
+      <p class="eyebrow">Experiment 1.a / 1.b</p>
+      <h1>CNN-BiLSTM vs CNN-xLSTM electricity price forecasting results</h1>
+      <p class="subtitle">
+        Six completed GPU runs compare two CNN-based forecasting models across normalized,
+        wavelet-enhanced, and PatchTST-style patch preprocessing.
+      </p>
+      <div class="meta">
+        <span class="pill">Dataset: final_dataset_full_clean.csv</span>
+        <span class="pill">Device: CUDA</span>
+        <span class="pill">Seed: 42</span>
+        <span class="pill">Scope: Exp.1.a and Exp.1.b only</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="grid three" aria-label="headline results">
+      <div class="panel">
+        <p class="metric-label">Best Test MAE</p>
+        <p class="metric-value">26.5345</p>
+        <p class="metric-note">CNN-xLSTM + norm</p>
+      </div>
+      <div class="panel">
+        <p class="metric-label">Best Test RMSE</p>
+        <p class="metric-value">39.3053</p>
+        <p class="metric-note">CNN-xLSTM + wavelet</p>
+      </div>
+      <div class="panel">
+        <p class="metric-label">Best CNN-BiLSTM Run</p>
+        <p class="metric-value">28.2966</p>
+        <p class="metric-note">MAE for CNN-BiLSTM + wavelet</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Final Test Metrics</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Experiment</th>
+            <th>Preprocess</th>
+            <th class="number">Test MAE</th>
+            <th class="number">Test RMSE</th>
+            <th class="number">Test MAPE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>CNN-BiLSTM</td><td>norm</td><td class="number">29.6499</td><td class="number">41.2486</td><td class="number">4114.6316</td></tr>
+          <tr><td>CNN-BiLSTM</td><td>wavelet</td><td class="number">28.2966</td><td class="number">39.3126</td><td class="number">3141.0965</td></tr>
+          <tr><td>CNN-BiLSTM</td><td>patch</td><td class="number">31.2233</td><td class="number">42.6750</td><td class="number">4408.1151</td></tr>
+          <tr><td>CNN-xLSTM</td><td>norm</td><td class="number winner">26.5345</td><td class="number">39.3580</td><td class="number">4172.5943</td></tr>
+          <tr><td>CNN-xLSTM</td><td>wavelet</td><td class="number">27.1211</td><td class="number winner">39.3053</td><td class="number">3918.8283</td></tr>
+          <tr><td>CNN-xLSTM</td><td>patch</td><td class="number">28.8341</td><td class="number">40.6153</td><td class="number">4161.9200</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="grid two">
+      <div class="panel">
+        <h2>MAE Comparison</h2>
+        <div class="bar-row"><span>CNN-BiLSTM norm</span><div class="bar-bg"><div class="bar" style="width: 94.96%"></div></div><strong>29.6499</strong></div>
+        <div class="bar-row"><span>CNN-BiLSTM wavelet</span><div class="bar-bg"><div class="bar" style="width: 90.63%"></div></div><strong>28.2966</strong></div>
+        <div class="bar-row"><span>CNN-BiLSTM patch</span><div class="bar-bg"><div class="bar patch" style="width: 100%"></div></div><strong>31.2233</strong></div>
+        <div class="bar-row"><span>CNN-xLSTM norm</span><div class="bar-bg"><div class="bar xlstm" style="width: 84.98%"></div></div><strong>26.5345</strong></div>
+        <div class="bar-row"><span>CNN-xLSTM wavelet</span><div class="bar-bg"><div class="bar xlstm" style="width: 86.86%"></div></div><strong>27.1211</strong></div>
+        <div class="bar-row"><span>CNN-xLSTM patch</span><div class="bar-bg"><div class="bar xlstm" style="width: 92.35%"></div></div><strong>28.8341</strong></div>
+        <p class="chart-note">Shorter bars are better because error is lower.</p>
+      </div>
+      <div class="panel">
+        <h2>RMSE Comparison</h2>
+        <div class="bar-row"><span>CNN-BiLSTM norm</span><div class="bar-bg"><div class="bar" style="width: 96.66%"></div></div><strong>41.2486</strong></div>
+        <div class="bar-row"><span>CNN-BiLSTM wavelet</span><div class="bar-bg"><div class="bar" style="width: 92.12%"></div></div><strong>39.3126</strong></div>
+        <div class="bar-row"><span>CNN-BiLSTM patch</span><div class="bar-bg"><div class="bar patch" style="width: 100%"></div></div><strong>42.6750</strong></div>
+        <div class="bar-row"><span>CNN-xLSTM norm</span><div class="bar-bg"><div class="bar xlstm" style="width: 92.22%"></div></div><strong>39.3580</strong></div>
+        <div class="bar-row"><span>CNN-xLSTM wavelet</span><div class="bar-bg"><div class="bar xlstm" style="width: 92.10%"></div></div><strong>39.3053</strong></div>
+        <div class="bar-row"><span>CNN-xLSTM patch</span><div class="bar-bg"><div class="bar xlstm" style="width: 95.17%"></div></div><strong>40.6153</strong></div>
+        <p class="chart-note">Shorter bars are better because error is lower.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Forecast Plots</h2>
+      <p class="note">
+        These plots compare predicted and actual electricity prices on the test set.
+        They are tracked copies of the completed run outputs so this page remains visible after committing.
+      </p>
+
+      <h3>Normalization</h3>
+      <div class="plot-pair">
+        <figure>
+          <figcaption>CNN-BiLSTM + norm</figcaption>
+          <img src="assets/exp1a_cnn_bilstm_norm_predictions.png" alt="CNN-BiLSTM normalization forecast plot">
+        </figure>
+        <figure>
+          <figcaption>CNN-xLSTM + norm</figcaption>
+          <img src="assets/exp1b_cnn_xlstm_norm_predictions.png" alt="CNN-xLSTM normalization forecast plot">
+        </figure>
+      </div>
+
+      <h3 style="margin-top: 22px;">Wavelet Transform</h3>
+      <div class="plot-pair">
+        <figure>
+          <figcaption>CNN-BiLSTM + wavelet</figcaption>
+          <img src="assets/exp1a_cnn_bilstm_wavelet_predictions.png" alt="CNN-BiLSTM wavelet forecast plot">
+        </figure>
+        <figure>
+          <figcaption>CNN-xLSTM + wavelet</figcaption>
+          <img src="assets/exp1b_cnn_xlstm_wavelet_predictions.png" alt="CNN-xLSTM wavelet forecast plot">
+        </figure>
+      </div>
+
+      <h3 style="margin-top: 22px;">PatchTST-Style Patch Encoding</h3>
+      <div class="plot-pair">
+        <figure>
+          <figcaption>CNN-BiLSTM + patch</figcaption>
+          <img src="assets/exp1a_cnn_bilstm_patch_predictions.png" alt="CNN-BiLSTM patch forecast plot">
+        </figure>
+        <figure>
+          <figcaption>CNN-xLSTM + patch</figcaption>
+          <img src="assets/exp1b_cnn_xlstm_patch_predictions.png" alt="CNN-xLSTM patch forecast plot">
+        </figure>
+      </div>
+    </section>
+
+    <section class="grid two">
+      <div class="panel">
+        <h2>Model Difference</h2>
+        <table>
+          <tbody>
+            <tr><th>Shared frontend</th><td>Both use the same temporal CNN encoder.</td></tr>
+            <tr><th>CNN-BiLSTM</th><td>CNN features feed into a bidirectional LSTM.</td></tr>
+            <tr><th>CNN-xLSTM</th><td>CNN features feed into the documented in-repo xLSTM-inspired recurrent stack.</td></tr>
+            <tr><th>Observed tradeoff</th><td>xLSTM improves MAE/RMSE here, but takes much longer to train.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h2>Preprocessing Readout</h2>
+        <table>
+          <tbody>
+            <tr><th>norm</th><td>Best MAE overall with CNN-xLSTM.</td></tr>
+            <tr><th>wavelet</th><td>Best RMSE overall with CNN-xLSTM.</td></tr>
+            <tr><th>patch</th><td>Weakest test results in this batch for both models.</td></tr>
+            <tr><th>MAPE</th><td>Unstable because target values can be close to zero.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Source Files</h2>
+      <p>
+        Related tracked summaries:
+        <a href="exp1_ab_results_snapshot.md">results snapshot</a>,
+        <a href="exp1_ab_model_comparison.md">model comparison report</a>,
+        <a href="exp1_ab_execution_status.md">execution status</a>.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

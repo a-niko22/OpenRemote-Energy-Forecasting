@@ -1,0 +1,27 @@
+\captionof{table}{Table with the results of the experiments, including the Proton model}
+\begin{tabular}{|l|l|l|l|}
+    \hline
+    \textbf{run\_title} & \textbf{duration\_hhmmss} & \textbf{mae} & \textbf{rmse} \\ \hline
+    Prophet baseline & 03:44:00 & 35.705599 & 51.297253 \\ \hline
+    Mean baseline & 00:00:01 & 41.667505 & 55.593261 \\ \hline
+    Zero baseline & 00:00:00 & 87.795577 & 100.832967 \\ \hline
+    MinMax + Mean & 00:00:02 & 41.667505 & 55.593261 \\ \hline
+    Exp1.a CNN-BiLSTM + Norm & 00:01:27 & 39.738697 & 54.504961 \\ \hline
+    Exp1.b CNN-xLSTM + Norm & 01:40:47 & 36.616713 & 51.924452 \\ \hline
+    Exp1.c CNN-BiLSTM-Tx + Norm & 00:02:41 & 39.024715 & 52.396946 \\ \hline
+    Exp1.d CNN-Tx + Norm & 00:01:55 & \textbf{35.202300} & \textbf{49.788010} \\ \hline
+    Exp1.a CNN-BiLSTM + Wavelet & 00:02:03 & 38.347490 & 51.884933 \\ \hline
+    Exp1.b CNN-xLSTM + Wavelet & 02:44:48 & 37.643475 & 52.044102 \\ \hline
+    Exp1.c CNN-BiLSTM-Tx + Wavelet & 00:04:25 & 37.002768 & \textbf{50.413288} \\ \hline
+    Exp1.d CNN-Tx + Wavelet & 00:02:31 & 36.766987 & 51.588176 \\ \hline
+    Exp1.a CNN-BiLSTM + Patch & 00:00:55 & 42.927602 & 54.618952 \\ \hline
+    Exp1.b CNN-xLSTM + Patch & 00:11:38 & 43.010114 & 55.008874 \\ \hline
+    Exp1.c CNN-BiLSTM-Tx + Patch & 00:01:44 & 40.832303 & 54.211177 \\ \hline
+    Exp1.d CNN-Tx + Patch & 00:01:26 & 42.898806 & 54.757634 \\ \hline
+    Exp2.a Decoder-Only Tx + Exp2 Standard & 00:02:52 & \textbf{31.805239} & \textbf{45.796124} \\ \hline
+    Exp2.b Decoder-Only Tx + Exp2 Wavelet & 00:06:11 & 36.966030 & \textbf{50.014923} \\ \hline
+    Exp2.c Encoder-Decoder Tx + Exp2 Standard & 00:03:43 & \textbf{30.480106} & \textbf{44.597015} \\ \hline
+    Exp2.d Kernel Tx + Kernel & 00:03:32 & \textbf{33.739584} & \textbf{48.833119} \\ \hline
+    Exp2.e iTransformer + Exp2 Standard & 00:07:32 & \textbf{30.210997} & \textbf{42.766888} \\ \hline
+\end{tabular}
+\label{table:results}

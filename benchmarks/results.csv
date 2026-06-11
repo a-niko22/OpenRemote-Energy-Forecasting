@@ -1,0 +1,6 @@
+model,timestamp,heldout_MAE,heldout_RMSE,heldout_MAPE,heldout_coverage_pct,cv_MAE,cv_RMSE,cv_MAPE,cv_coverage_pct
+<<<<<<< HEAD
+prophet,2026-05-21T00:27:46.387084,0.042411,0.048813,41.9536,73.44,0.038466,0.049589,50.7072,79.3
+=======
+prophet,2026-05-20T23:45:50.309444,0.012548,0.015649,14.7629,83.33,0.013305,0.016853,17.0335,76.0
+>>>>>>> e42f3d9f140394fe3da4a1855c5b0a33ea62e599

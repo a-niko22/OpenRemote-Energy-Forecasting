@@ -98,13 +98,13 @@ class TransformerConfig:
     num_layers: int
     dim_feedforward: int
     dropout: float
-    pool: str
+    activation: str
+    pooling: str
     head_hidden_size: int
+    max_len: int = 10000
     num_decoder_layers: int | None = None
-    fft_modes: int | None = None
-    fft_kind: str | None = None
-    kernel_type: str | None = None
     feature_dim: int | None = None
+    kernel_type: str | None = None
 
 
 @dataclass

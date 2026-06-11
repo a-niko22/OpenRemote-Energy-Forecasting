@@ -2,11 +2,13 @@
 venv/
 .venv/
 env/
+.Python
 
 # Python cache
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -34,6 +36,10 @@ lightning_logs/
 runs/
 tensorboard/
 events.out.tfevents*
+checkpoints/
+*.pkl
+*.pt
+*.h5
 
 # Environment files
 .env
@@ -52,11 +58,20 @@ htmlcov/
 # IDE / OS
 .vscode/
 .idea/
+*.swp
 .DS_Store
 Thumbs.db
 
 # Local logs
 *.log
+
+# Validation-only benchmark artifacts
+benchmarks/all_models_mock_benchmark.csv
+benchmarks/all_models_mock_benchmark.json
+benchmarks/mock_data/
+reports/all_models_mock_benchmark.md
+reports/all_models_mock_benchmark_dashboard.html
+reports/assets/all_models_mock_benchmark_comparison.svg
 
 .tmp/
 .pip-cache/
@@ -65,3 +80,10 @@ Thumbs.db
 tests/.tmp/
 
 .claude/
+
+# Portfolio-only local documents
+docs/portfolio/
+README.md
+
+# ml_pipeline logs
+ml_pipeline/pipeline_run_log.txt

@@ -55,3 +55,4 @@ class CyclicalScalling(BasePreprocessor):
     
     def __cosTransformer(self, datetime_series : DataFrame, period : int):
         return FunctionTransformer(lambda x: np.cos(2 * np.pi * x / period)).fit_transform(datetime_series)
+    

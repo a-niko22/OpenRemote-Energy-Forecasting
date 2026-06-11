@@ -1,0 +1,17 @@
+\section{Discussion and Advice}
+
+Our results paint a very clear picture \- transformer models outperform classic time-series neural networks, even when ensembled. We can posit that the inclusion of CNN or an RNN increase the complexity of the model without any benefits.
+This experiment inadvertidly functioned as a replication study of Yong Liu et.\ al.\ paper on iTransformers\cite{iTrans}, whose conclusions on the effectiveness of the inverted transformer are replicated in our experiment, inspite the different application.
+Another paper on inverted transfomers applies the method on a very different context, but not only does it reach the same conclusions, but they benchmark their results against an encoder-only transformer, and a model which includes an LSTM\cite{10877800}.
+The iTransformer performs the best, followed by the encoder-noly transformer, a PatchTST, and the Seq2Seq LSTM+Attention.
+
+These papers results being analogous to ours matter because they validate our methods by means of replication. However, the question of whether an ensemble model with the iTransformer would improve its ability to adapt to certain conditions, like predicting outliers, or the Min and Max of the data. A path for future research would look into what the stakeholder would like to optimise for and pick a model architecture that excels in that.
+
+The preprocessors are another point of improvement, particularly for Wavelet decomposition. One of the limitations of this group is the level of expertise and comfortableness with data science concepts, and their proper utilisation. This limitation results in the application of methods with methodological flaws.
+That the wavelet decomposition performed significantly worse than the standard could be due to poor feature engineering. It also completely isolated temporal features, which are properly augmented in the standard preprocessor, and likely contributed to its sucess.
+Future research should focus on improving feature selection based on ablation, and introducing better treatment of temporal features, with the hypothesis being that the best of both preprocessors could bring about better performance.
+
+With that said, the results from the standard preprocessor corroborate the idea that temporal features need to be strongly emphasised, along with the proper scalling of numerical features.
+
+Another hypothesis left unanswered is the effect of CNNs on transformers, since the transformer in Exp1 is different from the ones in Exp2. We can't event posit that the LSTM component is not benefitial to accuracy, since the difference between those including an LSTM and those without (in Exp1) is not statistically significant (p = 0.3).
+Even if we just look at the experiment were the only difference between the models is the inclusion of the RNN, the difference is still not significant (p = 0.4). However, none of the experiments retires the CNN. So that hypothesis is still up for answering. Future work could consider an ensenbmle of the iTransformer and CNN.

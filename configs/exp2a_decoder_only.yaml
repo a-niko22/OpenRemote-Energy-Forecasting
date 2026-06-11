@@ -17,7 +17,8 @@
       "num_decoder_layers": 3,
       "dim_feedforward": 256,
       "dropout": 0.1,
-      "pool": "last",
+      "activation": "gelu",
+      "pooling": "last",
       "head_hidden_size": 128
     }
   }
