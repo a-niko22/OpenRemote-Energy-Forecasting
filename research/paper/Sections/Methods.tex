@@ -50,18 +50,18 @@ For Exp.1, all variations will cycle through:
 \end{enumerate}
 
 \paragraph{Exp.1.a}
-Variation \textbf{a} will use a simple CNN-BiLSTM, since the use of BiLSTM consistently outperforms normal LSTMs in time-series forecasts.
+Variation \textbf{a} uses a CNN-BiLSTM architecture as the baseline recurrent model for Exp.1. The CNN frontend extracts local temporal patterns from the multivariate sequence and compresses them into a representation that is easier for the sequence model to exploit. The BiLSTM then models dependencies in both temporal directions, which is a common strategy in energy forecasting and other multivariate time-series tasks\cite{Shao2021,Fang2023}. This variant therefore acts as the reference configuration against which the newer recurrent and attention-based variants can be compared.
+
 \paragraph{Exp.1.b}
-Variation \textbf{b} will use a CNN-xLSTM.\
+Variation \textbf{b} replaces the BiLSTM block with an xLSTM module. xLSTM extends the classical LSTM design with updated memory and gating mechanisms intended to preserve long-range information more effectively while remaining recurrent in nature\cite{xLSTM2024}. Although it was introduced in a different domain, more recent work shows that xLSTM-style models can be transferred successfully to multivariate time-series forecasting\cite{xLSTMTimeSeries2025,xLSTMMixer}. This variation is included to test whether a more modern recurrent architecture can improve upon the conventional BiLSTM baseline without abandoning the recurrent paradigm entirely.
+
 \paragraph{Exp.1.c}
-Variation \textbf{c} will use a CNN-BiLSTM-Transformer. The discrepancy between results for each preprocessing method should be greatly scrutinised for this variation, as the use of a Transformer encoder and output model
-essentially places the CNN and BiLSTM as feature extractors.
+Variation \textbf{c} uses a CNN-BiLSTM-Transformer architecture. In this configuration, the CNN and BiLSTM primarily serve as hierarchical feature extractors, while the Transformer encoder refines the interactions among the resulting sequence representations. The purpose of this variant is to test whether attention complements recurrent modelling when both are placed in the same pipeline, as hybrid CNN-LSTM-Transformer systems have reported strong forecasting performance in related energy applications\cite{math11030676,Xu2025}. Because this model combines convolution, recurrence, and attention in a single architecture, the effect of each preprocessing method should be examined carefully for this variation.
+
 \paragraph{Exp.1.d}
-Variation \textbf{d} will use a CNN-Transformer. By removing the transformer, we aim to prove the null hypothesis that RNNs, particularly LSTMs, are greatly outperformed by Transformers for short-term dependencies,
-and that the features that they extract act as noise for a transformer.
+Variation \textbf{d} uses a CNN-Transformer architecture and removes the recurrent stage used in Exp.1.a--c. This creates a direct comparison between hybrid recurrent-attention models and a purely convolutional-attention pipeline, where the CNN captures local temporal structure and the Transformer models broader dependencies across the encoded sequence. The purpose of this variation is to test the null hypothesis that, once attention is introduced, the recurrent block no longer contributes useful information and may instead introduce redundancy or noise. Exp.1.d therefore serves as the cleanest control for determining whether the gains seen in Exp.1.c come from the Transformer itself or from the interaction between recurrence and attention.
 
-This set of variations offer a comprehensive use of the methods that the literature has provided, but they also take into account standard practises i.e. Normalisation and the use of CNNs for time-series data, also found in the literature\cite{math11030676,Xu2025,Manero2018}.
-
+This set of variations offers a broad comparison between conventional recurrent forecasting models, newer recurrent alternatives, and hybrid attention-based architectures, while keeping the preprocessing strategies fixed across the experiment. In that sense, Exp.1 provides the bridge between the more classical neural approaches in the literature and the Transformer-focused models that are explored more directly in Exp.2\cite{math11030676,Xu2025,Manero2018}.
 
 \begin{table*}[ht]
 \centering
