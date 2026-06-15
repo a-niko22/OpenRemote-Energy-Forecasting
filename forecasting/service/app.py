@@ -35,7 +35,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from forecasting.models import build_model
-from forecasting.data_utils import load_scalers
+from forecasting.pipeline.data_utils import load_scalers
 
 # ---------------------------------------------------------------------------
 # Logging
@@ -45,6 +45,9 @@ logging.basicConfig(
     format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
 )
 logger = logging.getLogger("energy-price-forecast")
+
+SERVICE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SERVICE_DIR.parents[1]
 
 # ---------------------------------------------------------------------------
 # Global model state (populated during lifespan startup)
@@ -169,10 +172,20 @@ async def _start_registration():
 async def lifespan(app: FastAPI):
     # --- Load model ---
     model_name = os.getenv("ML_MODEL_NAME", "nbeatsx")
-    model_dir  = os.getenv("ML_MODEL_DIR",  "saved_models")
+    model_dir = Path(os.getenv("ML_MODEL_DIR", str(PROJECT_ROOT / "saved_models")))
+    model_path = Path(os.getenv("ML_MODEL_PATH", str(model_dir / f"{model_name}.pt")))
+    scaler_path = Path(os.getenv("ML_SCALER_PATH", str(model_dir / f"{model_name}_scalers.pkl")))
 
-    model_path  = os.path.join(model_dir, f"{model_name}.pt")
-    scaler_path = os.path.join(model_dir, f"{model_name}_scalers.pkl")
+    if not model_path.exists():
+        raise RuntimeError(
+            f"Model checkpoint not found: {model_path}. "
+            "Provide it via ML_MODEL_PATH or place it in saved_models/."
+        )
+    if not scaler_path.exists():
+        raise RuntimeError(
+            f"Scaler bundle not found: {scaler_path}. "
+            "Provide it via ML_SCALER_PATH or place it in saved_models/."
+        )
 
     logger.info("Loading model from %s", model_path)
     checkpoint = torch.load(model_path, map_location="cpu", weights_only=False)
@@ -239,7 +252,7 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 # Forecast config persistence
 # ---------------------------------------------------------------------------
-_CONFIGS_DIR = Path(os.getenv("ML_DATA_DIR", "deployment/data")) / "configs"
+_CONFIGS_DIR = Path(os.getenv("ML_DATA_DIR", str(PROJECT_ROOT / "deployment" / "data"))) / "configs"
 
 
 class ForecastConfig(BaseModel):
@@ -292,7 +305,7 @@ def delete_config(config_id: str):
 # ---------------------------------------------------------------------------
 # UI (embedded in OpenRemote Manager via iframe)
 # ---------------------------------------------------------------------------
-_DIST_DIR = Path("dist")
+_DIST_DIR = SERVICE_DIR / "dist"
 
 
 def _render_ui(realm: str) -> HTMLResponse:
@@ -417,7 +430,7 @@ def predict(req: PredictRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "app:app",
+        "forecasting.service.app:app",
         host=os.getenv("ML_HOST", "0.0.0.0"),
         port=int(os.getenv("ML_PORT", "8000")),
         reload=False,

@@ -1,4 +1,4 @@
-# Build:  docker build -t energy-price-forecast:latest .
+# Build:  docker build -f forecasting/service/Dockerfile -t energy-price-forecast:latest .
 # Run:    docker compose up energy-price-forecast
 
 # --- Build stage: install Python dependencies --------------------------------
@@ -29,13 +29,10 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Application source
 COPY forecasting/ ./forecasting/
-COPY saved_models/nbeatsx.pt ./saved_models/nbeatsx.pt
-COPY saved_models/nbeatsx_scalers.pkl ./saved_models/nbeatsx_scalers.pkl
-COPY dist/ ./dist/
-COPY app.py .
+COPY saved_models/ ./saved_models/
 
 # Persistent data mount point (docker-compose volume: service-ml-forecast-data)
-RUN mkdir -p /app/deployment/data/configs
+RUN mkdir -p /app/deployment/data/configs /app/saved_models
 
 EXPOSE 8000
 
@@ -43,4 +40,4 @@ EXPOSE 8000
 RUN useradd -m appuser && chown -R appuser /app
 USER appuser
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "forecasting.service.app:app", "--host", "0.0.0.0", "--port", "8000"]

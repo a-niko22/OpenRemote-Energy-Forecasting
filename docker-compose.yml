@@ -80,7 +80,10 @@ services:
       - service-ml-forecast-data:/app/deployment/data
 
   energy-price-forecast:
-    image: nazim112/energy-price-forecast:latest
+    build:
+      context: .
+      dockerfile: forecasting/service/Dockerfile
+    image: energy-price-forecast:latest
     restart: always
     environment:
       ML_LOG_LEVEL: INFO
@@ -96,6 +99,7 @@ services:
       ML_OR_SERVICE_USER_SECRET: ${ML_OR_SERVICE_USER_SECRET}
       ML_OR_SERVICE_URL: https://localhost
       ML_OR_KEYCLOAK_VALID_ISSUERS: "[\"https://localhost/auth/realms/master\"]"
+      ML_MODEL_DIR: /app/saved_models
     depends_on:
       keycloak:
         condition: service_healthy
@@ -109,6 +113,7 @@ services:
       start_period: 40s
     volumes:
       - energy-price-forecast-data:/app/deployment/data
+      - ./saved_models:/app/saved_models:ro
 
   manager:
 #    privileged: true
