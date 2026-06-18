@@ -4,45 +4,45 @@ The top-level auxiliary file: main.aux
 The style file: plain.bst
 Database file #1: citations.bib
 Warning--empty journal in Taylor2017
-You've used 22 entries,
+You've used 25 entries,
             2118 wiz_defined-function locations,
-            643 strings with 8524 characters,
-and the built_in function-call counts, 8150 in all, are:
-= -- 740
-> -- 511
+            655 strings with 9166 characters,
+and the built_in function-call counts, 9221 in all, are:
+= -- 824
+> -- 610
 < -- 1
-+ -- 208
-- -- 178
-* -- 674
-:= -- 1404
-add.period$ -- 63
-call.type$ -- 22
-change.case$ -- 155
++ -- 247
+- -- 214
+* -- 755
+:= -- 1590
+add.period$ -- 69
+call.type$ -- 25
+change.case$ -- 182
 chr.to.int$ -- 0
-cite$ -- 23
-duplicate$ -- 241
-empty$ -- 561
-format.name$ -- 178
-if$ -- 1628
+cite$ -- 26
+duplicate$ -- 262
+empty$ -- 627
+format.name$ -- 214
+if$ -- 1838
 int.to.chr$ -- 0
-int.to.str$ -- 22
+int.to.str$ -- 25
 missing$ -- 19
-newline$ -- 110
-num.names$ -- 44
-pop$ -- 141
+newline$ -- 122
+num.names$ -- 50
+pop$ -- 183
 preamble$ -- 1
-purify$ -- 133
+purify$ -- 157
 quote$ -- 0
-skip$ -- 181
+skip$ -- 205
 stack$ -- 0
-substring$ -- 470
-swap$ -- 33
+substring$ -- 485
+swap$ -- 36
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 88
+type$ -- 100
 warning$ -- 1
-while$ -- 62
-width$ -- 24
-write$ -- 233
+while$ -- 68
+width$ -- 27
+write$ -- 257
 (There was 1 warning)

@@ -10,6 +10,10 @@ Elham~M. Al-Ali, Yassine Hajji, Yahia Said, Manel Hleili, Amal~M. Alanzi, Ali~H.
 \newblock Solar energy production forecasting based on a hybrid cnn-lstm-transformer model.
 \newblock {\em Mathematics}, 11(3), 2023.
 
+\bibitem{xLSTM2024}
+Maximilian Beck, Korbinian P\"{o}ppel, Markus Spanring, Andreas Auer, Oleksandra Prudnikova, Michael Kopp, G\"{u}nter Klambauer, Johannes Brandstetter, and Sepp Hochreiter.
+\newblock xlstm: Extended long short-term memory, 2024.
+
 \bibitem{CHEN2025126302}
 Junfeng Chen, Azhu Guan, Jingjing Du, and Altangerel Ayush.
 \newblock Multivariate time series prediction with multi-feature analysis.
@@ -30,6 +34,10 @@ Umair Hussan, Huaizhi Wang, Jianchun Peng, Hui Jiang, and Hamna Rasheed.
 \newblock Transformer-based renewable energy forecasting: A comprehensive review.
 \newblock {\em Renew. Sustain. Energy Rev.}, 226(116356):116356, January 2026.
 
+\bibitem{xLSTMTimeSeries2025}
+Lei Kang, Xuanshuo Fu, Javier Vazquez-Corral, Ernest Valveny, and Dimosthenis Karatzas.
+\newblock xlstm-ecg: Multi-label ecg classification via feature fusion with xlstm, 2025.
+
 \bibitem{curseOfAttention}
 Yekun Ke, Yingyu Liang, Zhenmei Shi, Zhao Song, and Chiwun Yang.
 \newblock Curse of attention: A kernel-based perspective for why transformers fail to generalize on time series forecasting and beyond, 2024.
@@ -38,6 +46,10 @@ Yekun Ke, Yingyu Liang, Zhenmei Shi, Zhao Song, and Chiwun Yang.
 Xiangjie Kong, Zhenghao Chen, Weiyao Liu, Kaili Ning, Lechao Zhang, Syauqie Muhammad~Marier, Yichen Liu, Yuhao Chen, and Feng Xia.
 \newblock Deep learning for time series forecasting: a survey.
 \newblock {\em International Journal of Machine Learning and Cybernetics}, 16(7–8):5079–5112, February 2025.
+
+\bibitem{xLSTMMixer}
+Maurice Kraus, Felix Divo, Devendra~Singh Dhami, and Kristian Kersting.
+\newblock xlstm-mixer: Multivariate time series forecasting by mixing via scalar memories, 2024.
 
 \bibitem{iTrans}
 Yong Liu, Tengge Hu, Haoran Zhang, Haixu Wu, Shiyu Wang, Lintao Ma, and Mingsheng Long.
