@@ -60,7 +60,7 @@ services:
       # KEYCLOAK_ISSUER_BASE_URI: 'https://${OR_HOSTNAME:-localhost}/auth'
 
   ml-forecast:
-    image: openremote/service-ml-forecast:latest
+    image: nazim112/service-ml-forecast:latest
     restart: always
     environment:
       ML_LOG_LEVEL: INFO
@@ -68,11 +68,16 @@ services:
       ML_WEBSERVER_ORIGINS: '["https://localhost"]'
       ML_OR_URL: http://manager:8080
       ML_OR_KEYCLOAK_URL: http://keycloak:8080/auth
+      ML_OR_PUBLIC_URL: https://localhost
+      ML_OR_PUBLIC_KEYCLOAK_URL: https://localhost/auth
       ML_VERIFY_SSL: "false"
+      ML_API_MIDDLEWARE_KEYCLOAK: "false"
       ML_OR_SERVICE_USER: test-service-user
-      ML_OR_SERVICE_USER_SECRET: ${ML_OR_SERVICE_USER_SECRET}
-      OR_SERVICE_URL: https://${OR_HOSTNAME:-localhost}
+      ML_OR_SERVICE_USER_SECRET: jow8LchlljXSvrrLTWeG8irDfzrWnNAr
+      ML_OR_SERVICE_URL: https://localhost
       ML_OR_KEYCLOAK_VALID_ISSUERS: "[\"https://localhost/auth/realms/master\"]"
+      OR_HOSTNAME: localhost
+      OR_SSL_PORT: -1
     depends_on:
       keycloak:
         condition: service_healthy
@@ -86,14 +91,12 @@ services:
       ML_LOG_LEVEL: INFO
       ML_MODEL_NAME: nbeatsx
       ML_ENVIRONMENT: production
-      ML_OR_EXTERNAL_URL: https://${OR_HOSTNAME:-localhost}
-      ML_OR_KEYCLOAK_EXTERNAL_URL: https://${OR_HOSTNAME:-localhost}/auth
       ML_WEBSERVER_ORIGINS: '["https://localhost"]'
       ML_OR_URL: http://manager:8080
       ML_OR_KEYCLOAK_URL: http://keycloak:8080/auth
       ML_VERIFY_SSL: "false"
       ML_OR_SERVICE_USER: test-service-user
-      ML_OR_SERVICE_USER_SECRET: ${ML_OR_SERVICE_USER_SECRET}
+      ML_OR_SERVICE_USER_SECRET: jow8LchlljXSvrrLTWeG8irDfzrWnNAr
       ML_OR_SERVICE_URL: https://localhost
       ML_OR_KEYCLOAK_VALID_ISSUERS: "[\"https://localhost/auth/realms/master\"]"
     depends_on:
